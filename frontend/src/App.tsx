@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import Footer from './components/Footer'
-import { Upload, Settings, Loader2, ChevronLeft, ChevronRight, Download, CheckCircle, ChevronDown, HelpCircle, AlertTriangle, Sun, Moon, Monitor, BarChart3 } from 'lucide-react'
+import { Upload, Settings, ChevronLeft, ChevronRight, Download, CheckCircle, ChevronDown, HelpCircle, AlertTriangle, Sun, Moon, BarChart3 } from 'lucide-react'
 
 type ParseResult = Record<string, any> & { filename?: string, __error__?: string }
 
@@ -98,42 +98,7 @@ function MobileNav({ activeView, onSelectView }: { activeView: 'upload'|'prefere
   )
 }
 
-function Dropdown({ label, value, options, onChange }: { label?: string, value: string, options: string[], onChange: (v: string)=>void }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement|null>(null)
-  // Close on outside click, not on hover-leave, for smoother selection
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (!ref.current) return
-      if (!ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-  return (
-    <div className="relative inline-block" ref={ref}>
-      <button type="button" onClick={()=>setOpen(v=>!v)}
-        className="inline-flex items-center gap-2 px-4 py-2 text-sm rounded-lg border border-neutral-300 bg-white hover:bg-neutral-100 shadow-sm transition-colors dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700"
-        aria-haspopup="menu" aria-expanded={open}
-      >
-        <span className="text-neutral-800 dark:text-neutral-200">{value}</span>
-      </button>
-      {open && (
-        <div role="menu" className="absolute z-50 mt-2 w-44 rounded-xl border border-neutral-200 bg-white shadow-lg overflow-hidden dark:border-neutral-700 dark:bg-neutral-800 shadow-soft">
-          <ul className="py-1">
-            {options.map(opt => (
-              <li key={opt}>
-                <button className="w-full text-left px-3 py-2 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors text-neutral-800 dark:text-neutral-200" onClick={()=>{ onChange(opt); setOpen(false) }}>
-                  {opt}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  )
-}
+// Removed unused Dropdown component
 
 // Split button style dropdown with fixed width and attached arrow button
 function SplitDropdown({ value, options, onChange, widthClass = 'w-44' }: { value: string, options: string[], onChange: (v: string)=>void, widthClass?: string }) {
@@ -285,7 +250,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     return [...selectedCategories]
   })
   // Toggle to control whether Excel uses only filtered tables or all from preferences
-  const [exportOnlyFiltered, setExportOnlyFiltered] = useState<boolean>(() => {
+  const [, setExportOnlyFiltered] = useState<boolean>(() => {
     try {
       const key = `pref_export_only_filtered_${returnType}`
       const raw = localStorage.getItem(key)
@@ -293,7 +258,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     } catch {}
     return true
   })
-  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [, setSummaryLoading] = useState(false)
   const [summaryData, setSummaryData] = useState<null | {
     returnType: 'GSTR-1'|'GSTR-3B'
     columns: string[]
@@ -304,7 +269,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
   // Close dropdown when clicking outside or pressing Escape
   useEffect(() => {
     if (!filterOpen) return
-    const onClick = (e: MouseEvent) => {
+    const onClick = (e: Event) => {
       const el = filterRef.current
       if (el && !el.contains(e.target as Node)) setFilterOpen(false)
     }
@@ -406,13 +371,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [returnType])
 
-  const toggleExportOnlyFiltered = () => {
-    setExportOnlyFiltered(prev => {
-      const next = !prev
-      try { localStorage.setItem(`pref_export_only_filtered_${returnType}`, String(next)) } catch {}
-      return next
-    })
-  }
+  // Removed unused toggleExportOnlyFiltered helper
 
   // Tables split-button dropdown handlers (accessible menu)
   const [tablesMenuOpen, setTablesMenuOpen] = useState(false)
