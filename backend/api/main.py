@@ -48,17 +48,8 @@ app.add_middleware(
 def health():
     return {"status": "ok", "time": datetime.datetime.utcnow().isoformat()}
 
-# Serve frontend (Vite build) as static SPA
+# Frontend mount deferred until after API routes are registered (see bottom)
 DIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
-try:
-    if os.path.exists(DIST_DIR):
-        # html=True enables SPA fallback to index.html for unknown paths
-        app.mount("/", StaticFiles(directory=DIST_DIR, html=True), name="static")
-        logger.info(f"Mounted frontend dist at: {DIST_DIR}")
-    else:
-        logger.warning(f"Frontend dist not found at {DIST_DIR}; static SPA serving disabled.")
-except Exception as e:
-    logger.exception(f"Failed to mount StaticFiles for frontend: {e}")
 
 
 def _json_safe(value):
@@ -711,3 +702,14 @@ async def tables_excel(payload: dict):
     except Exception as e:
         logger.exception("Failed to create Tables Excel")
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+# Serve frontend (Vite build) as static SPA (mounted last to avoid shadowing /api routes)
+try:
+    if os.path.exists(DIST_DIR):
+        # html=True enables SPA fallback to index.html for unknown paths
+        app.mount("/", StaticFiles(directory=DIST_DIR, html=True), name="static")
+        logger.info(f"Mounted frontend dist at: {DIST_DIR}")
+    else:
+        logger.warning(f"Frontend dist not found at {DIST_DIR}; static SPA serving disabled.")
+except Exception as e:
+    logger.exception(f"Failed to mount StaticFiles for frontend: {e}")
