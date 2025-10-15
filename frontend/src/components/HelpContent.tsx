@@ -22,8 +22,12 @@ export default function HelpContent() {
       <div className="pt-4">
         <h3 className="font-semibold text-base">Contact Us</h3>
         <p>
-          If you have any questions, feedback, or need support, please contact us at
+          If you have any questions or need support, please contact us at
           {' '}<a href="mailto:support@varma.ai" className="text-blue-600 dark:text-blue-400 underline">support@varma.ai</a>.(mail id to be updated)
+        </p>
+        <p>
+          Write your feedbacks through this
+          {' '}<a href="https://forms.gle/hWeqCvZQ5F1T4j8A8" className="text-blue-600 dark:text-blue-400 underline">survey form</a>
         </p>
       </div>
     </div>
