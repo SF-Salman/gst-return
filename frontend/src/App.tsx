@@ -543,31 +543,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
   const selectAllTables = () => setDisplayedTables([...selectedCategories])
   const deselectAllTables = () => setDisplayedTables([])
 
-  // Update the editedSummary nested rows by section/category/subcategory name
-  const updateEditedRows = (
-    secHeading: string,
-    catName: string,
-    subName: string | null,
-    rows: Array<{ description?: string, key?: string, values: any[], column_index?: number|null }>
-  ) => {
-    setEditedSummary((prev: any | null) => {
-      if (!prev) return prev
-      const next = JSON.parse(JSON.stringify(prev))
-      const section = (next.sections || []).find((s: any) => (s.heading || 'Section') === secHeading)
-      if (!section) return prev
-      const category = (section.categories || []).find((c: any) => String(c.name || '') === String(catName || ''))
-      if (!category) return prev
-      if (subName) {
-        const sub = (category.subcategories || []).find((sc: any) => String(sc.name || '') === String(subName || ''))
-        if (!sub) return prev
-        sub.rows = rows
-      } else {
-        category.rows = rows
-      }
-      return next
-    })
-  }
-
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-soft border border-neutral-200 dark:border-neutral-700 p-4 sm:p-6 font-inter">
       <div className="flex flex-wrap items-center gap-2 mb-4">
