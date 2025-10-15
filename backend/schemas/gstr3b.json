@@ -1031,35 +1031,35 @@
   {
     "Field Name": "hsn_total_value",
     "Headings": "HSN Summary",
-    "Category": "Refund Claimed",
+    "Category": "HSN Summary",
     "Sub Category": "None",
     "Field Description": "HSN summary total value"
   },
   {
     "Field Name": "hsn_total_igst",
     "Headings": "HSN Summary",
-    "Category": "Refund Claimed",
+    "Category": "HSN Summary",
     "Sub Category": "None",
     "Field Description": "HSN summary total IGST"
   },
   {
     "Field Name": "hsn_total_cgst",
     "Headings": "HSN Summary",
-    "Category": "Refund Claimed",
+    "Category": "HSN Summary",
     "Sub Category": "None",
     "Field Description": "HSN summary total CGST"
   },
   {
     "Field Name": "hsn_total_sgst",
     "Headings": "HSN Summary",
-    "Category": "Refund Claimed",
+    "Category": "HSN Summary",
     "Sub Category": "None",
     "Field Description": "HSN summary total SGST"
   },
   {
     "Field Name": "hsn_total_cess",
     "Headings": "HSN Summary",
-    "Category": "Refund Claimed",
+    "Category": "HSN Summary",
     "Sub Category": "None",
     "Field Description": "HSN summary total CESS"
   },
