@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function HelpContent() {
   return (
     <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-soft border border-neutral-200 dark:border-neutral-700 p-6 space-y-3 text-sm text-neutral-800 dark:text-neutral-200">

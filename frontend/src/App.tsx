@@ -318,21 +318,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     }
   }, [JSON.stringify(selectedCategories), returnType])
 
-  const downloadExcel = async () => {
-    if (!results.length) return
-        const res = await fetch(`${API_BASE}/api/excel`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(includeFailedInExcel ? results : results.filter(r=>!r.__error__))
-    })
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'returns_data.xlsx'
-    a.click()
-    URL.revokeObjectURL(url)
-  }
+  // Removed unused downloadExcel; raw export handled in App
 
   const downloadTablesExcel = async (useFiltered?: boolean) => {
     if (!results.length) return
@@ -440,7 +426,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     march: ['mar','march'],
   }
 
-  function EditableTable({ columns, rows, label, onRowsChange }: { columns: string[], rows: Array<{ description?: string, key?: string, values: any[], column_index?: number|null }>, label?: string, onRowsChange?: (rows: Array<{ description?: string, key?: string, values: any[], column_index?: number|null }>) => void }) {
+  function EditableTable({ columns, rows, label }: { columns: string[], rows: Array<{ description?: string, key?: string, values: any[], column_index?: number|null }>, label?: string }) {
     const [tableRows, setTableRows] = useState(rows.map(r => ({ ...r, values: [...(r.values||[])] })))
     const sortedIdx = computeSortedIndices(columns)
     useEffect(() => {
@@ -534,12 +520,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     return [...known.map(k=>k.idx), ...unknown.map(u=>u.idx)]
   }
 
-  const getPeriod = (r: any) => {
-    return returnType === 'GSTR-1' ? (r['TaxPeriod'] ?? r['period'] ?? '') : (r['period'] ?? r['TaxPeriod'] ?? '')
-  }
-  const getYear = (r: any) => {
-    return returnType === 'GSTR-1' ? (r['FinancialYear'] ?? r['year'] ?? '') : (r['year'] ?? r['FinancialYear'] ?? '')
-  }
+  // Removed unused getPeriod/getYear helpers
   const numberFmt = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 })
   const fmt = (v: any) => {
     if (v == null) return ''
@@ -569,7 +550,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     subName: string | null,
     rows: Array<{ description?: string, key?: string, values: any[], column_index?: number|null }>
   ) => {
-    setEditedSummary(prev => {
+    setEditedSummary((prev: any | null) => {
       if (!prev) return prev
       const next = JSON.parse(JSON.stringify(prev))
       const section = (next.sections || []).find((s: any) => (s.heading || 'Section') === secHeading)
@@ -760,7 +741,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                                         columns={summaryData.columns}
                                         rows={sub.rows}
                                         label={title}
-                                        onRowsChange={(updated)=>updateEditedRows(sec, String(cat.name || ''), String(sub.name || ''), updated)}
                                       />
                                     </div>
                                   )
@@ -776,7 +756,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                                   columns={summaryData.columns}
                                   rows={rows}
                                   label={title}
-                                  onRowsChange={(updated)=>updateEditedRows(sec, String(cat.name || ''), null, updated)}
                                 />
                               )
                             })()}
@@ -820,12 +799,11 @@ function App() {
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<ParseResult[]>([])
   const [progress, setProgress] = useState<{done:number,total:number}>({done:0,total:0})
-  const [includeFailedInExcel, setIncludeFailedInExcel] = useState(true)
-  const [enableConcurrency, setEnableConcurrency] = useState(true)
+  const [includeFailedInExcel] = useState(true)
   const [lastReturnType, setLastReturnType] = useState<'GSTR-1'|'GSTR-3B'>('GSTR-3B')
 
   // Schema categories and user-selected tables preferences
-  const [schemaCategories, setSchemaCategories] = useState<{['GSTR-1']: string[], ['GSTR-3B']: string[]}>({ 'GSTR-1': [], 'GSTR-3B': [] })
+  // Removed unused schemaCategories state
   const [selectedTables, setSelectedTables] = useState<{['GSTR-1']: string[], ['GSTR-3B']: string[]}>({ 'GSTR-1': [], 'GSTR-3B': [] })
   const [schemaStructure, setSchemaStructure] = useState<{['GSTR-1']: Array<{ heading: string, categories: Array<{ name: string, subcategories?: string[] }> }>, ['GSTR-3B']: Array<{ heading: string, categories: Array<{ name: string, subcategories?: string[] }> }>}>({ 'GSTR-1': [], 'GSTR-3B': [] })
   const [activeSettingsTab, setActiveSettingsTab] = useState<'GSTR-1'|'GSTR-3B'>('GSTR-1')
@@ -893,7 +871,6 @@ function App() {
         const dataCats = await resCats.json()
         const g1 = (dataCats['GSTR-1']?.categories ?? []) as string[]
         const g3b = (dataCats['GSTR-3B']?.categories ?? []) as string[]
-        setSchemaCategories({ 'GSTR-1': g1, 'GSTR-3B': g3b })
         setSelectedTables({ 'GSTR-1': loadPrefs('GSTR-1', g1), 'GSTR-3B': loadPrefs('GSTR-3B', g3b) })
         // Load structured schema for tabulated preferences
     const resStruct = await fetch(`${API_BASE}/api/schema_structure`)
@@ -1036,7 +1013,7 @@ function App() {
           <MobileNav activeView={activeView} onSelectView={setActiveView} />
           {activeView === 'upload' && (
             <>
-              <UploadCard onProcess={onProcess} onFilesSelected={(files)=>{
+              <UploadCard onProcess={onProcess} onFilesSelected={()=>{
                 // Clear all results data immediately on new file selection
                 setResults([])
                 setProgress({done:0,total:0})
