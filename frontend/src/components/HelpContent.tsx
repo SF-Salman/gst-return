@@ -26,8 +26,8 @@ export default function HelpContent() {
           {' '}<a href="mailto:support@varma.ai" className="text-blue-600 dark:text-blue-400 underline">support@varma.ai</a>.(mail id to be updated)
         </p>
         <p>
-          Write your feedbacks through this
-          {' '}<a href="https://forms.gle/hWeqCvZQ5F1T4j8A8" className="text-blue-600 dark:text-blue-400 underline">survey form</a>
+          Write your feedback
+          {' '}<a href="https://forms.gle/hWeqCvZQ5F1T4j8A8" className="text-blue-600 dark:text-blue-400 underline">here</a>
         </p>
       </div>
     </div>
