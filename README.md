@@ -2,14 +2,14 @@
 
 Enhanced tool for extracting comprehensive data from GSTR-1 and GSTR-3B returns in both PDF and JSON formats. Now ships a single backend service that also serves the React SPA.
 
-## 🚀 New Features (v2.0)
+## 🚀 New Features (v3.0)
 
-- ✅ **JSON Import Support**: Import data from official GSTN JSON files
-- ✅ **Comprehensive Field Coverage**: 200+ fields for GSTR-1, 150+ fields for GSTR-3B
-- ✅ **Dual Format Support**: Process both PDF and JSON files
-- ✅ **Enhanced Validation**: Built-in data quality checks and scoring
-- ✅ **Batch Processing**: Process multiple files in one go
-- ✅ **Web & CLI Interfaces**: Use via browser or command line
+- ✅ **Unified Single Service**: FastAPI serves the API and the React SPA
+- ✅ **Healthcheck Endpoint**: `/api/health` with Docker Compose healthcheck
+- ✅ **Dockerized Build**: Multi-stage Dockerfile; simplified single-service compose
+- ✅ **Env-Based API Base**: `VITE_API_BASE` support (build-time arg and runtime env)
+- ✅ **Docs Refresh**: Updated README, USAGE, and frontend README for SPA + API
+- ✅ **Git Hygiene**: Improved `.gitignore` and `.gitattributes` for cross-platform EOL
 
 ## 📋 Features
 
@@ -128,7 +128,7 @@ data = extract_gstr1_from_json(json_data)
 ## 📖 Documentation
 
 - **USAGE.md**: Comprehensive usage guide with examples
-- **ENHANCEMENT_SUMMARY.md**: Details of v2.0 enhancements
+- **ENHANCEMENT_SUMMARY.md**: Details of v3 enhancements
 - **GSTR1_Comprehensive_Fields.md**: Complete field reference for GSTR-1
 - **GSTR3B_Comprehensive_Fields.md**: Complete field reference for GSTR-3B
 
@@ -146,7 +146,15 @@ This tool is for informational purposes only! Always verify extracted data with 
 
 ## 📝 Version History
 
-### v2.0 (Current)
+### v3.0 (Current)
+- Unified SPA + FastAPI single service
+- Healthcheck endpoint and Docker Compose healthcheck
+- Docker multi-stage build and single-service compose
+- Environment-based API base (`VITE_API_BASE`) with optional build-arg
+- Updated documentation (README, USAGE, frontend README)
+- `.gitignore`/`.gitattributes` improvements for consistent line endings
+
+### v2.0
 - Added JSON import support
 - Enhanced field extraction (200+ fields for GSTR-1, 150+ for GSTR-3B)
 - Added comprehensive validation
