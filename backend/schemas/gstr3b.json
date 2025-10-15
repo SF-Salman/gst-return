@@ -1,0 +1,1234 @@
+[
+  {
+    "Field Name": "gstin",
+    "Headings": "Basic Information Fields",
+    "Category": "1. Registration Details",
+    "Sub Category": "None",
+    "Field Description": "GSTIN of the supplier"
+  },
+  {
+    "Field Name": "legal_name",
+    "Headings": "Basic Information Fields",
+    "Category": "1. Registration Details",
+    "Sub Category": "None",
+    "Field Description": "Legal name of the registered person"
+  },
+  {
+    "Field Name": "trade_name",
+    "Headings": "Basic Information Fields",
+    "Category": "1. Registration Details",
+    "Sub Category": "None",
+    "Field Description": "Trade name (if any)"
+  },
+  {
+    "Field Name": "period",
+    "Headings": "Basic Information Fields",
+    "Category": "1. Registration Details",
+    "Sub Category": "None",
+    "Field Description": "Tax period (month)"
+  },
+  {
+    "Field Name": "year",
+    "Headings": "Basic Information Fields",
+    "Category": "1. Registration Details",
+    "Sub Category": "None",
+    "Field Description": "Financial year"
+  },
+  {
+    "Field Name": "arn",
+    "Headings": "Basic Information Fields",
+    "Category": "1. Registration Details",
+    "Sub Category": "None",
+    "Field Description": "ARN (Acknowledgement Reference Number)"
+  },
+  {
+    "Field Name": "arn_date",
+    "Headings": "Basic Information Fields",
+    "Category": "1. Registration Details",
+    "Sub Category": "None",
+    "Field Description": "Date of ARN"
+  },
+  {
+    "Field Name": "arn_date_parsed",
+    "Headings": "Basic Information Fields",
+    "Category": "1. Registration Details",
+    "Sub Category": "None",
+    "Field Description": "Parsed ARN date"
+  },
+  {
+    "Field Name": "authorized_signatory",
+    "Headings": "Basic Information Fields",
+    "Category": "2. Authorized Signatory",
+    "Sub Category": "None",
+    "Field Description": "Name of authorized signatory"
+  },
+  {
+    "Field Name": "designation",
+    "Headings": "Basic Information Fields",
+    "Category": "2. Authorized Signatory",
+    "Sub Category": "None",
+    "Field Description": "Designation/Status of signatory"
+  },
+  {
+    "Field Name": "verification_date",
+    "Headings": "Basic Information Fields",
+    "Category": "3. Verification Details",
+    "Sub Category": "None",
+    "Field Description": "Date of verification"
+  },
+  {
+    "Field Name": "place_of_signing",
+    "Headings": "Basic Information Fields",
+    "Category": "3. Verification Details",
+    "Sub Category": "None",
+    "Field Description": "Place of signing"
+  },
+  {
+    "Field Name": "digital_signature",
+    "Headings": "Basic Information Fields",
+    "Category": "3. Verification Details",
+    "Sub Category": "None",
+    "Field Description": "Digital signature details"
+  },
+  {
+    "Field Name": "outward_taxable_value",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.1: Taxable Outward Supplies",
+    "Sub Category": "None",
+    "Field Description": "Total taxable value"
+  },
+  {
+    "Field Name": "outward_igst",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.1: Taxable Outward Supplies",
+    "Sub Category": "None",
+    "Field Description": "IGST amount"
+  },
+  {
+    "Field Name": "outward_cgst",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.1: Taxable Outward Supplies",
+    "Sub Category": "None",
+    "Field Description": "CGST amount"
+  },
+  {
+    "Field Name": "outward_sgst",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.1: Taxable Outward Supplies",
+    "Sub Category": "None",
+    "Field Description": "SGST amount"
+  },
+  {
+    "Field Name": "outward_cess",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.1: Taxable Outward Supplies",
+    "Sub Category": "None",
+    "Field Description": "CESS amount"
+  },
+  {
+    "Field Name": "zero_rated_value",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.2: Zero Rated Supplies",
+    "Sub Category": "None",
+    "Field Description": "Zero rated supplies value"
+  },
+  {
+    "Field Name": "zero_rated_igst",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.2: Zero Rated Supplies",
+    "Sub Category": "None",
+    "Field Description": "Zero rated IGST"
+  },
+  {
+    "Field Name": "nil_exempt_value",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.3: Nil Rated/Exempted Supplies",
+    "Sub Category": "None",
+    "Field Description": "Nil rated/exempted supplies value"
+  },
+  {
+    "Field Name": "non_gst_value",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.4: Non-GST Supplies",
+    "Sub Category": "None",
+    "Field Description": "Non-GST supplies value"
+  },
+  {
+    "Field Name": "inward_reverse_charge_value",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.5: Inward Supplies Liable to Reverse Charge",
+    "Sub Category": "None",
+    "Field Description": "Value of inward supplies liable to reverse charge"
+  },
+  {
+    "Field Name": "inward_reverse_charge_igst",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.5: Inward Supplies Liable to Reverse Charge",
+    "Sub Category": "None",
+    "Field Description": "IGST on reverse charge supplies"
+  },
+  {
+    "Field Name": "inward_reverse_charge_cgst",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.5: Inward Supplies Liable to Reverse Charge",
+    "Sub Category": "None",
+    "Field Description": "CGST on reverse charge supplies"
+  },
+  {
+    "Field Name": "inward_reverse_charge_sgst",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.5: Inward Supplies Liable to Reverse Charge",
+    "Sub Category": "None",
+    "Field Description": "SGST on reverse charge supplies"
+  },
+  {
+    "Field Name": "inward_reverse_charge_cess",
+    "Headings": "Table 3.1: Outward Supplies",
+    "Category": "3.1.5: Inward Supplies Liable to Reverse Charge",
+    "Sub Category": "None",
+    "Field Description": "CESS on reverse charge supplies"
+  },
+  {
+    "Field Name": "sec_9_5_ecom_operator_value",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Electronic Commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "Value of supplies where e-commerce operator pays tax"
+  },
+  {
+    "Field Name": "sec_9_5_ecom_operator_igst",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Electronic Commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "IGST amount"
+  },
+  {
+    "Field Name": "sec_9_5_ecom_operator_cgst",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Electronic Commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "CGST amount"
+  },
+  {
+    "Field Name": "sec_9_5_ecom_operator_sgst",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Electronic Commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "SGST amount"
+  },
+  {
+    "Field Name": "sec_9_5_ecom_operator_cess",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Electronic Commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "CESS amount"
+  },
+  {
+    "Field Name": "sec_9_5_registered_person_value",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Registered Person through E-commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "Value of supplies through e-commerce operator"
+  },
+  {
+    "Field Name": "sec_9_5_registered_person_igst",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Registered Person through E-commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "IGST amount"
+  },
+  {
+    "Field Name": "sec_9_5_registered_person_cgst",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Registered Person through E-commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "CGST amount"
+  },
+  {
+    "Field Name": "sec_9_5_registered_person_sgst",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Registered Person through E-commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "SGST amount"
+  },
+  {
+    "Field Name": "sec_9_5_registered_person_cess",
+    "Headings": "Table 3.1.1: Supplies under Section 9(5)",
+    "Category": "Registered Person through E-commerce Operator",
+    "Sub Category": "None",
+    "Field Description": "CESS amount"
+  },
+  {
+    "Field Name": "interstate_unreg_value",
+    "Headings": "Table 3.2: Inter-State Supplies",
+    "Category": "Unregistered Persons",
+    "Sub Category": "None",
+    "Field Description": "Value of supplies to unregistered persons"
+  },
+  {
+    "Field Name": "interstate_unreg_igst",
+    "Headings": "Table 3.2: Inter-State Supplies",
+    "Category": "Unregistered Persons",
+    "Sub Category": "None",
+    "Field Description": "IGST amount"
+  },
+  {
+    "Field Name": "interstate_composition_value",
+    "Headings": "Table 3.2: Inter-State Supplies",
+    "Category": "Composition Taxable Persons",
+    "Sub Category": "None",
+    "Field Description": "Value of supplies to composition taxable persons"
+  },
+  {
+    "Field Name": "interstate_composition_igst",
+    "Headings": "Table 3.2: Inter-State Supplies",
+    "Category": "Composition Taxable Persons",
+    "Sub Category": "None",
+    "Field Description": "IGST amount"
+  },
+  {
+    "Field Name": "interstate_uin_value",
+    "Headings": "Table 3.2: Inter-State Supplies",
+    "Category": "UIN Holders",
+    "Sub Category": "None",
+    "Field Description": "Value of supplies to UIN holders"
+  },
+  {
+    "Field Name": "interstate_uin_igst",
+    "Headings": "Table 3.2: Inter-State Supplies",
+    "Category": "UIN Holders",
+    "Sub Category": "None",
+    "Field Description": "IGST amount"
+  },
+  {
+    "Field Name": "import_goods_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on import of goods - IGST"
+  },
+  {
+    "Field Name": "import_goods_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on import of goods - CGST"
+  },
+  {
+    "Field Name": "import_goods_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on import of goods - SGST"
+  },
+  {
+    "Field Name": "import_goods_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on import of goods - CESS"
+  },
+  {
+    "Field Name": "import_services_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on import of services - IGST"
+  },
+  {
+    "Field Name": "import_services_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on import of services - CGST"
+  },
+  {
+    "Field Name": "import_services_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on import of services - SGST"
+  },
+  {
+    "Field Name": "import_services_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on import of services - CESS"
+  },
+  {
+    "Field Name": "reverse_charge_itc_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on inward supplies liable to reverse charge - IGST"
+  },
+  {
+    "Field Name": "reverse_charge_itc_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on inward supplies liable to reverse charge - CGST"
+  },
+  {
+    "Field Name": "reverse_charge_itc_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on inward supplies liable to reverse charge - SGST"
+  },
+  {
+    "Field Name": "reverse_charge_itc_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC on inward supplies liable to reverse charge - CESS"
+  },
+  {
+    "Field Name": "isd_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC from ISD - IGST"
+  },
+  {
+    "Field Name": "isd_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC from ISD - CGST"
+  },
+  {
+    "Field Name": "isd_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC from ISD - SGST"
+  },
+  {
+    "Field Name": "isd_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "ITC from ISD - CESS"
+  },
+  {
+    "Field Name": "other_itc_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "All other ITC - IGST"
+  },
+  {
+    "Field Name": "other_itc_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "All other ITC - CGST"
+  },
+  {
+    "Field Name": "other_itc_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "All other ITC - SGST"
+  },
+  {
+    "Field Name": "other_itc_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(A): ITC Available",
+    "Sub Category": "None",
+    "Field Description": "All other ITC - CESS"
+  },
+  {
+    "Field Name": "rules_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(B): ITC Reversed",
+    "Sub Category": "None",
+    "Field Description": "ITC reversed as per rules 38, 42 & 43 - IGST"
+  },
+  {
+    "Field Name": "rules_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(B): ITC Reversed",
+    "Sub Category": "None",
+    "Field Description": "ITC reversed as per rules 38, 42 & 43 - CGST"
+  },
+  {
+    "Field Name": "rules_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(B): ITC Reversed",
+    "Sub Category": "None",
+    "Field Description": "ITC reversed as per rules 38, 42 & 43 - SGST"
+  },
+  {
+    "Field Name": "rules_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(B): ITC Reversed",
+    "Sub Category": "None",
+    "Field Description": "ITC reversed as per rules 38, 42 & 43 - CESS"
+  },
+  {
+    "Field Name": "others_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(B): ITC Reversed",
+    "Sub Category": "None",
+    "Field Description": "ITC reversed - Others - IGST"
+  },
+  {
+    "Field Name": "others_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(B): ITC Reversed",
+    "Sub Category": "None",
+    "Field Description": "ITC reversed - Others - CGST"
+  },
+  {
+    "Field Name": "others_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(B): ITC Reversed",
+    "Sub Category": "None",
+    "Field Description": "ITC reversed - Others - SGST"
+  },
+  {
+    "Field Name": "others_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(B): ITC Reversed",
+    "Sub Category": "None",
+    "Field Description": "ITC reversed - Others - CESS"
+  },
+  {
+    "Field Name": "net_itc_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(C): Net ITC Available",
+    "Sub Category": "None",
+    "Field Description": "Net ITC available - IGST"
+  },
+  {
+    "Field Name": "net_itc_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(C): Net ITC Available",
+    "Sub Category": "None",
+    "Field Description": "Net ITC available - CGST"
+  },
+  {
+    "Field Name": "net_itc_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(C): Net ITC Available",
+    "Sub Category": "None",
+    "Field Description": "Net ITC available - SGST"
+  },
+  {
+    "Field Name": "net_itc_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(C): Net ITC Available",
+    "Sub Category": "None",
+    "Field Description": "Net ITC available - CESS"
+  },
+  {
+    "Field Name": "itc_reclaimed_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(D): Other Details",
+    "Sub Category": "None",
+    "Field Description": "ITC reclaimed - IGST"
+  },
+  {
+    "Field Name": "itc_reclaimed_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(D): Other Details",
+    "Sub Category": "None",
+    "Field Description": "ITC reclaimed - CGST"
+  },
+  {
+    "Field Name": "itc_reclaimed_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(D): Other Details",
+    "Sub Category": "None",
+    "Field Description": "ITC reclaimed - SGST"
+  },
+  {
+    "Field Name": "itc_reclaimed_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(D): Other Details",
+    "Sub Category": "None",
+    "Field Description": "ITC reclaimed - CESS"
+  },
+  {
+    "Field Name": "ineligible_itc_igst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(D): Other Details",
+    "Sub Category": "None",
+    "Field Description": "Ineligible ITC - IGST"
+  },
+  {
+    "Field Name": "ineligible_itc_cgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(D): Other Details",
+    "Sub Category": "None",
+    "Field Description": "Ineligible ITC - CGST"
+  },
+  {
+    "Field Name": "ineligible_itc_sgst",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(D): Other Details",
+    "Sub Category": "None",
+    "Field Description": "Ineligible ITC - SGST"
+  },
+  {
+    "Field Name": "ineligible_itc_cess",
+    "Headings": "Table 4: ITC Available",
+    "Category": "4(D): Other Details",
+    "Sub Category": "None",
+    "Field Description": "Ineligible ITC - CESS"
+  },
+  {
+    "Field Name": "composition_inter_state",
+    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
+    "Category": "Composition Scheme",
+    "Sub Category": "None",
+    "Field Description": "From supplier under composition scheme - Inter-state"
+  },
+  {
+    "Field Name": "composition_intra_state",
+    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
+    "Category": "Composition Scheme",
+    "Sub Category": "None",
+    "Field Description": "From supplier under composition scheme - Intra-state"
+  },
+  {
+    "Field Name": "non_gst_inter_state",
+    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
+    "Category": "Non-GST Supply",
+    "Sub Category": "None",
+    "Field Description": "Non-GST supply - Inter-state"
+  },
+  {
+    "Field Name": "non_gst_intra_state",
+    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
+    "Category": "Non-GST Supply",
+    "Sub Category": "None",
+    "Field Description": "Non-GST supply - Intra-state"
+  },
+  {
+    "Field Name": "nil_rated_inter_state",
+    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
+    "Category": "Nil Rated Supplies",
+    "Sub Category": "None",
+    "Field Description": "Nil rated supplies - Inter-state"
+  },
+  {
+    "Field Name": "nil_rated_intra_state",
+    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
+    "Category": "Nil Rated Supplies",
+    "Sub Category": "None",
+    "Field Description": "Nil rated supplies - Intra-state"
+  },
+  {
+    "Field Name": "exempted_inter_state",
+    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
+    "Category": "Exempted Supplies",
+    "Sub Category": "None",
+    "Field Description": "Exempted supplies - Inter-state"
+  },
+  {
+    "Field Name": "exempted_intra_state",
+    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
+    "Category": "Exempted Supplies",
+    "Sub Category": "None",
+    "Field Description": "Exempted supplies - Intra-state"
+  },
+  {
+    "Field Name": "interest_igst",
+    "Headings": "Table 5.1: Interest and Late Fee",
+    "Category": "Interest Paid",
+    "Sub Category": "None",
+    "Field Description": "Interest paid - IGST"
+  },
+  {
+    "Field Name": "interest_cgst",
+    "Headings": "Table 5.1: Interest and Late Fee",
+    "Category": "Interest Paid",
+    "Sub Category": "None",
+    "Field Description": "Interest paid - CGST"
+  },
+  {
+    "Field Name": "interest_sgst",
+    "Headings": "Table 5.1: Interest and Late Fee",
+    "Category": "Interest Paid",
+    "Sub Category": "None",
+    "Field Description": "Interest paid - SGST"
+  },
+  {
+    "Field Name": "interest_cess",
+    "Headings": "Table 5.1: Interest and Late Fee",
+    "Category": "Interest Paid",
+    "Sub Category": "None",
+    "Field Description": "Interest paid - CESS"
+  },
+  {
+    "Field Name": "late_fee_igst",
+    "Headings": "Table 5.1: Interest and Late Fee",
+    "Category": "Late Fee",
+    "Sub Category": "None",
+    "Field Description": "Late fee - IGST"
+  },
+  {
+    "Field Name": "late_fee_cgst",
+    "Headings": "Table 5.1: Interest and Late Fee",
+    "Category": "Late Fee",
+    "Sub Category": "None",
+    "Field Description": "Late fee - CGST"
+  },
+  {
+    "Field Name": "late_fee_sgst",
+    "Headings": "Table 5.1: Interest and Late Fee",
+    "Category": "Late Fee",
+    "Sub Category": "None",
+    "Field Description": "Late fee - SGST"
+  },
+  {
+    "Field Name": "late_fee_cess",
+    "Headings": "Table 5.1: Interest and Late Fee",
+    "Category": "Late Fee",
+    "Sub Category": "None",
+    "Field Description": "Late fee - CESS"
+  },
+  {
+    "Field Name": "igst_payable",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "IGST payable"
+  },
+  {
+    "Field Name": "igst_paid_itc_igst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "IGST paid through ITC - IGST"
+  },
+  {
+    "Field Name": "igst_paid_itc_cgst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "IGST paid through ITC - CGST"
+  },
+  {
+    "Field Name": "igst_paid_itc_sgst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "IGST paid through ITC - SGST"
+  },
+  {
+    "Field Name": "igst_paid_cash",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "IGST paid in cash"
+  },
+  {
+    "Field Name": "igst_interest",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "IGST interest"
+  },
+  {
+    "Field Name": "igst_late_fee",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "IGST late fee"
+  },
+  {
+    "Field Name": "cgst_payable",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "CGST payable"
+  },
+  {
+    "Field Name": "cgst_paid_itc_igst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "CGST paid through ITC - IGST"
+  },
+  {
+    "Field Name": "cgst_paid_itc_cgst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "CGST paid through ITC - CGST"
+  },
+  {
+    "Field Name": "cgst_paid_itc_sgst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "CGST paid through ITC - SGST"
+  },
+  {
+    "Field Name": "cgst_paid_cash",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "CGST paid in cash"
+  },
+  {
+    "Field Name": "cgst_interest",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "CGST interest"
+  },
+  {
+    "Field Name": "cgst_late_fee",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "CGST late fee"
+  },
+  {
+    "Field Name": "sgst_payable",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "SGST payable"
+  },
+  {
+    "Field Name": "sgst_paid_itc_igst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "SGST paid through ITC - IGST"
+  },
+  {
+    "Field Name": "sgst_paid_itc_cgst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "SGST paid through ITC - CGST"
+  },
+  {
+    "Field Name": "sgst_paid_itc_sgst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "SGST paid through ITC - SGST"
+  },
+  {
+    "Field Name": "sgst_paid_cash",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "SGST paid in cash"
+  },
+  {
+    "Field Name": "sgst_interest",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "SGST interest"
+  },
+  {
+    "Field Name": "sgst_late_fee",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "SGST late fee"
+  },
+  {
+    "Field Name": "cess_payable",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "CESS payable"
+  },
+  {
+    "Field Name": "cess_paid_itc_igst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "CESS paid through ITC - IGST"
+  },
+  {
+    "Field Name": "cess_paid_itc_cgst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "CESS paid through ITC - CGST"
+  },
+  {
+    "Field Name": "cess_paid_itc_sgst",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "CESS paid through ITC - SGST"
+  },
+  {
+    "Field Name": "cess_paid_cash",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "CESS paid in cash"
+  },
+  {
+    "Field Name": "cess_interest",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "CESS interest"
+  },
+  {
+    "Field Name": "cess_late_fee",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Other than Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "CESS late fee"
+  },
+  {
+    "Field Name": "rc_igst_payable",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "RC IGST payable"
+  },
+  {
+    "Field Name": "rc_igst_paid_cash",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Reverse Charge",
+    "Sub Category": " IGST",
+    "Field Description": "RC IGST paid in cash"
+  },
+  {
+    "Field Name": "rc_cgst_payable",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "RC CGST payable"
+  },
+  {
+    "Field Name": "rc_cgst_paid_cash",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Reverse Charge",
+    "Sub Category": " CGST",
+    "Field Description": "RC CGST paid in cash"
+  },
+  {
+    "Field Name": "rc_sgst_payable",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "RC SGST payable"
+  },
+  {
+    "Field Name": "rc_sgst_paid_cash",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Reverse Charge",
+    "Sub Category": " SGST",
+    "Field Description": "RC SGST paid in cash"
+  },
+  {
+    "Field Name": "rc_cess_payable",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "RC CESS payable"
+  },
+  {
+    "Field Name": "rc_cess_paid_cash",
+    "Headings": "Table 6.1: Payment of Tax",
+    "Category": "Reverse Charge",
+    "Sub Category": " CESS",
+    "Field Description": "RC CESS paid in cash"
+  },
+  {
+    "Field Name": "late_fee_details_igst",
+    "Headings": "Additional Fields",
+    "Category": "Late Fee Details",
+    "Sub Category": "None",
+    "Field Description": "Late fee details - IGST"
+  },
+  {
+    "Field Name": "late_fee_details_cgst",
+    "Headings": "Additional Fields",
+    "Category": "Late Fee Details",
+    "Sub Category": "None",
+    "Field Description": "Late fee details - CGST"
+  },
+  {
+    "Field Name": "late_fee_details_sgst",
+    "Headings": "Additional Fields",
+    "Category": "Late Fee Details",
+    "Sub Category": "None",
+    "Field Description": "Late fee details - SGST"
+  },
+  {
+    "Field Name": "late_fee_details_cess",
+    "Headings": "Additional Fields",
+    "Category": "Late Fee Details",
+    "Sub Category": "None",
+    "Field Description": "Late fee details - CESS"
+  },
+  {
+    "Field Name": "interest_details_igst",
+    "Headings": "Additional Fields",
+    "Category": "Interest Details",
+    "Sub Category": "None",
+    "Field Description": "Interest details - IGST"
+  },
+  {
+    "Field Name": "interest_details_cgst",
+    "Headings": "Additional Fields",
+    "Category": "Interest Details",
+    "Sub Category": "None",
+    "Field Description": "Interest details - CGST"
+  },
+  {
+    "Field Name": "interest_details_sgst",
+    "Headings": "Additional Fields",
+    "Category": "Interest Details",
+    "Sub Category": "None",
+    "Field Description": "Interest details - SGST"
+  },
+  {
+    "Field Name": "interest_details_cess",
+    "Headings": "Additional Fields",
+    "Category": "Interest Details",
+    "Sub Category": "None",
+    "Field Description": "Interest details - CESS"
+  },
+  {
+    "Field Name": "refund_claimed_igst",
+    "Headings": "Additional Fields",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "Refund claimed - IGST"
+  },
+  {
+    "Field Name": "refund_claimed_cgst",
+    "Headings": "Additional Fields",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "Refund claimed - CGST"
+  },
+  {
+    "Field Name": "refund_claimed_sgst",
+    "Headings": "Additional Fields",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "Refund claimed - SGST"
+  },
+  {
+    "Field Name": "refund_claimed_cess",
+    "Headings": "Additional Fields",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "Refund claimed - CESS"
+  },
+  {
+    "Field Name": "hsn_total_value",
+    "Headings": "HSN Summary",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "HSN summary total value"
+  },
+  {
+    "Field Name": "hsn_total_igst",
+    "Headings": "HSN Summary",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "HSN summary total IGST"
+  },
+  {
+    "Field Name": "hsn_total_cgst",
+    "Headings": "HSN Summary",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "HSN summary total CGST"
+  },
+  {
+    "Field Name": "hsn_total_sgst",
+    "Headings": "HSN Summary",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "HSN summary total SGST"
+  },
+  {
+    "Field Name": "hsn_total_cess",
+    "Headings": "HSN Summary",
+    "Category": "Refund Claimed",
+    "Sub Category": "None",
+    "Field Description": "HSN summary total CESS"
+  },
+  {
+    "Field Name": "tds_value",
+    "Headings": "Additional Tax Details",
+    "Category": "TDS Details",
+    "Sub Category": "None",
+    "Field Description": "TDS value"
+  },
+  {
+    "Field Name": "tds_igst",
+    "Headings": "Additional Tax Details",
+    "Category": "TDS Details",
+    "Sub Category": "None",
+    "Field Description": "TDS IGST"
+  },
+  {
+    "Field Name": "tds_cgst",
+    "Headings": "Additional Tax Details",
+    "Category": "TDS Details",
+    "Sub Category": "None",
+    "Field Description": "TDS CGST"
+  },
+  {
+    "Field Name": "tds_sgst",
+    "Headings": "Additional Tax Details",
+    "Category": "TDS Details",
+    "Sub Category": "None",
+    "Field Description": "TDS SGST"
+  },
+  {
+    "Field Name": "tcs_value",
+    "Headings": "Additional Tax Details",
+    "Category": "TCS Details",
+    "Sub Category": "None",
+    "Field Description": "TCS value"
+  },
+  {
+    "Field Name": "tcs_igst",
+    "Headings": "Additional Tax Details",
+    "Category": "TCS Details",
+    "Sub Category": "None",
+    "Field Description": "TCS IGST"
+  },
+  {
+    "Field Name": "tcs_cgst",
+    "Headings": "Additional Tax Details",
+    "Category": "TCS Details",
+    "Sub Category": "None",
+    "Field Description": "TCS CGST"
+  },
+  {
+    "Field Name": "tcs_sgst",
+    "Headings": "Additional Tax Details",
+    "Category": "TCS Details",
+    "Sub Category": "None",
+    "Field Description": "TCS SGST"
+  },
+  {
+    "Field Name": "value",
+    "Headings": "Reverse Charge Supplies",
+    "Category": "Reverse Charge Supplies",
+    "Sub Category": "None",
+    "Field Description": "Reverse charge supplies value"
+  },
+  {
+    "Field Name": "igst",
+    "Headings": "Reverse Charge Supplies",
+    "Category": "Reverse Charge Supplies",
+    "Sub Category": "None",
+    "Field Description": "Reverse charge supplies IGST"
+  },
+  {
+    "Field Name": "cgst",
+    "Headings": "Reverse Charge Supplies",
+    "Category": "Reverse Charge Supplies",
+    "Sub Category": "None",
+    "Field Description": "Reverse charge supplies CGST"
+  },
+  {
+    "Field Name": "sgst",
+    "Headings": "Reverse Charge Supplies",
+    "Category": "Reverse Charge Supplies",
+    "Sub Category": "None",
+    "Field Description": "Reverse charge supplies SGST"
+  },
+  {
+    "Field Name": "cess",
+    "Headings": "Reverse Charge Supplies",
+    "Category": "Reverse Charge Supplies",
+    "Sub Category": "None",
+    "Field Description": "Reverse charge supplies CESS"
+  },
+  {
+    "Field Name": "value_1",
+    "Headings": "Other Debit/Credit Entries",
+    "Category": "Other Debit/Credit Entries",
+    "Sub Category": "None",
+    "Field Description": "Other debit/credit entries value"
+  },
+  {
+    "Field Name": "igst_1",
+    "Headings": "Other Debit/Credit Entries",
+    "Category": "Other Debit/Credit Entries",
+    "Sub Category": "None",
+    "Field Description": "Other debit/credit entries IGST"
+  },
+  {
+    "Field Name": "cgst_1",
+    "Headings": "Other Debit/Credit Entries",
+    "Category": "Other Debit/Credit Entries",
+    "Sub Category": "None",
+    "Field Description": "Other debit/credit entries CGST"
+  },
+  {
+    "Field Name": "sgst_1",
+    "Headings": "Other Debit/Credit Entries",
+    "Category": "Other Debit/Credit Entries",
+    "Sub Category": "None",
+    "Field Description": "Other debit/credit entries SGST"
+  },
+  {
+    "Field Name": "cess_1",
+    "Headings": "Other Debit/Credit Entries",
+    "Category": "Other Debit/Credit Entries",
+    "Sub Category": "None",
+    "Field Description": "Other debit/credit entries CESS"
+  },
+  {
+    "Field Name": "total_outward_supplies_value",
+    "Headings": "Summary Statistics (Calculated)",
+    "Category": "Summary Statistics (Calculated)",
+    "Sub Category": "None",
+    "Field Description": "Total outward supplies value"
+  },
+  {
+    "Field Name": "total_itc_available_igst",
+    "Headings": "Summary Statistics (Calculated)",
+    "Category": "Summary Statistics (Calculated)",
+    "Sub Category": "None",
+    "Field Description": "Total ITC available IGST"
+  },
+  {
+    "Field Name": "total_tax_payable",
+    "Headings": "Summary Statistics (Calculated)",
+    "Category": "Summary Statistics (Calculated)",
+    "Sub Category": "None",
+    "Field Description": "Total tax payable"
+  },
+  {
+    "Field Name": "validation_errors",
+    "Headings": "Validation and Error Fields",
+    "Category": "Validation and Error Fields",
+    "Sub Category": "None",
+    "Field Description": "List of validation errors"
+  },
+  {
+    "Field Name": "parsing_error",
+    "Headings": "Validation and Error Fields",
+    "Category": "Validation and Error Fields",
+    "Sub Category": "None",
+    "Field Description": "Any major parsing errors"
+  },
+  {
+    "Field Name": "filename",
+    "Headings": "File Information",
+    "Category": "File Information",
+    "Sub Category": "None",
+    "Field Description": "Name of the uploaded file"
+  }
+]
