@@ -21,13 +21,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
 COPY requirements.txt ./
-RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r requirements.txt
+RUN pip wheel --no-cache-dir --only-binary=:all: --wheel-dir=/wheels -r requirements.txt
 
 # Stage 3: Runtime
 FROM python:3.11-slim-bookworm AS runtime
