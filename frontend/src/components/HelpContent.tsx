@@ -27,7 +27,7 @@ export default function HelpContent() {
         </p>
         <p>
           Write your feedback
-          {' '}<a href="https://forms.gle/hWeqCvZQ5F1T4j8A8" className="text-blue-600 dark:text-blue-400 underline">here</a>
+          {' '}<a href="https://forms.gle/hWeqCvZQ5F1T4j8A8" target="_blank" rel="noopener noreferrer"className="text-blue-600 dark:text-blue-400 underline">here.</a>
         </p>
       </div>
     </div>
