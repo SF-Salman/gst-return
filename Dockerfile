@@ -3,7 +3,7 @@
 #############################
 
 # Stage 1: Build frontend (Vite)
-FROM node:18-alpine AS webbuild
+FROM node:20-alpine AS webbuild
 WORKDIR /web
 ENV CI=true
 ARG VITE_API_BASE
