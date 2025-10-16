@@ -93,6 +93,8 @@ function MobileNav({ activeView, onSelectView }: { activeView: 'upload'|'prefere
       <div className="flex gap-2">
         <button onClick={()=>onSelectView('upload')} className={`flex-1 px-3 py-2 text-sm rounded-lg border ${activeView==='upload' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`}>Upload</button>
         <button onClick={()=>onSelectView('preferences')} className={`flex-1 px-3 py-2 text-sm rounded-lg border ${activeView==='preferences' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`}>Preferences</button>
+        <button onClick={()=>onSelectView('help')} className={`flex-1 px-3 py-2 text-sm rounded-lg border ${activeView==='help' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`}>Help</button>
+        <button onClick={()=>onSelectView('disclaimer')} className={`flex-1 px-3 py-2 text-sm rounded-lg border ${activeView==='disclaimer' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`}>Disclaimer</button>
       </div>
     </div>
   )
