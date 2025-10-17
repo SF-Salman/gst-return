@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import Footer from './components/Footer'
-import { Upload, Settings, ChevronLeft, ChevronRight, Download, CheckCircle, ChevronDown, HelpCircle, AlertTriangle, Sun, Moon, BarChart3, Filter, X, Check, PanelLeft, ArrowUpDown, ChevronsDown, ChevronsUp } from 'lucide-react'
+import { Upload, Settings, Download, CheckCircle, ChevronDown, HelpCircle, AlertTriangle, Sun, Moon, BarChart3, Filter, X, Check, PanelLeft, ArrowUpDown, ChevronsDown, ChevronsUp } from 'lucide-react'
 
 type ParseResult = Record<string, any> & { filename?: string, __error__?: string }
 
@@ -155,23 +155,6 @@ function SplitDropdown({ value, options, onChange, widthClass = 'w-52' }: { valu
           </ul>
         </div>
       )}
-    </div>
-  )
-}
-function ProgressBar({ done, total, loading }: { done:number, total:number, loading:boolean }) {
-  if (!total) return null
-  const pct = total ? Math.round((done/total)*100) : 0
-  return (
-    <div className="mx-6 bg-white rounded-2xl shadow-soft border border-neutral-200 p-4 dark:bg-neutral-800 dark:border-neutral-700">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-          <div className="h-3 bg-[#14cba1] rounded-full transition-all" style={{ width: `${pct}%` }} />
-        </div>
-        <div className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-nowrap">{done}/{total}</div>
-        {!loading && done===total && (
-          <CheckCircle className="w-5 h-5 text-[#14cba1]" />
-        )}
-      </div>
     </div>
   )
 }
@@ -599,35 +582,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     const ROW_H = 22
     const maxHeightPx = TITLE_BAR_H + HEADER_H + ROW_H * MAX_BODY_ROWS
 
-    const downloadThisTableCSV = () => {
-      try {
-        const headers = ['Period', ...tableRows.map(r => (r.description || r.key || ''))]
-        const rowsCsv = sortedIdx.map(ci => {
-          const cells = [String(columns[ci] || '')]
-          for (const row of tableRows) {
-            const v = (row.values || [])[ci]
-            const s = fmt(v)
-            const escaped = String(s).replace(/\"/g, '""')
-            cells.push(/,|\n|\r|\"/.test(escaped) ? `"${escaped}"` : escaped)
-          }
-          return cells.join(',')
-        })
-        const totalsCsv = (() => {
-          const cells = ['Total', ...columnTotals.map(t => fmt(t))]
-          return cells.join(',')
-        })()
-        const csv = [headers.join(','), ...rowsCsv, totalsCsv].join('\n')
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${(label || 'table').replace(/\s+/g,'_').toLowerCase()}.csv`
-        a.click()
-        URL.revokeObjectURL(url)
-      } catch (e) {
-        console.error('CSV download failed', e)
-      }
-    }
 
     return (
       <div className="min-w-[48rem] text-xs rounded-2xl shadow-sm bg-white dark:bg-neutral-800">
@@ -1088,7 +1042,6 @@ function App() {
     return 'upload'
   })
   const [prefOpen, setPrefOpen] = useState(false)
-  const [previousView, setPreviousView] = useState<'upload'|'help'|'disclaimer'>('upload')
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<ParseResult[]>([])
   const [progress, setProgress] = useState<{done:number,total:number}>({done:0,total:0})
