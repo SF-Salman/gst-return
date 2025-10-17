@@ -22,7 +22,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY requirements.txt ./
-RUN pip wheel --no-cache-dir --only-binary=:all: --wheel-dir=/wheels -r requirements.txt
+# Upgrade pip/setuptools/wheel to ensure compatibility with manylinux_2_28 wheels on Railway
+RUN python -m pip install --upgrade pip setuptools wheel \
+    && pip wheel --no-cache-dir --only-binary=:all: --wheel-dir=/wheels -r requirements.txt
 
 # Stage 3: Runtime
 FROM python:3.11-slim-bookworm AS runtime
