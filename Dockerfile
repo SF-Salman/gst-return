@@ -45,8 +45,8 @@ COPY gstr1.py gstr3b.py json_import.py ./
 # Copy built frontend assets into image
 COPY --from=webbuild /web/dist ./frontend/dist
 
-# Expose FastAPI port
+# Expose FastAPI port (Railway sets PORT env)
 EXPOSE 8000
 
-# Start FastAPI app
-CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start FastAPI app; use PORT if provided (Railway), default 8000
+CMD ["sh", "-c", "uvicorn backend.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

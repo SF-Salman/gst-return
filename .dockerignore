@@ -17,6 +17,7 @@ frontend/.vite/
 frontend/.cache/
 frontend/.next/
 frontend/.nuxt/
+frontside-fusion-main/
 .env
 .env.*
 *.env
