@@ -21,10 +21,19 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# System build deps for occasional source builds when wheel missing
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libffi-dev \
+    libssl-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt ./
-# Upgrade pip/setuptools/wheel to ensure compatibility with manylinux_2_28 wheels on Railway
+# Upgrade pip/setuptools/wheel, then build wheels (prefer prebuilt, fallback to source)
 RUN python -m pip install --upgrade pip setuptools wheel \
-    && pip wheel --no-cache-dir --only-binary=:all: --wheel-dir=/wheels -r requirements.txt
+    && pip wheel --no-cache-dir --prefer-binary --wheel-dir=/wheels -r requirements.txt
 
 # Stage 3: Runtime
 FROM python:3.11-slim-bookworm AS runtime
