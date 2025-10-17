@@ -56,8 +56,11 @@ COPY gstr1.py gstr3b.py json_import.py ./
 # Copy built frontend assets into image
 COPY --from=webbuild /web/dist ./frontend/dist
 
-# Expose FastAPI port (Railway sets PORT env)
-EXPOSE 8000
+# Expose default Railway port (metadata)
+EXPOSE 8080
+
+# Container healthcheck for orchestration
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=5 CMD python -c "import os,urllib.request,sys;port=os.getenv('PORT','8000');url='http://127.0.0.1:'+port+'/api/health';sys.exit(0) if urllib.request.urlopen(url,timeout=2).status==200 else sys.exit(1)"
 
 # Start FastAPI app; use PORT if provided (Railway), default 8000
-CMD ["sh", "-c", "uvicorn backend.api.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+CMD ["sh", "-c", "uvicorn backend.api.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
