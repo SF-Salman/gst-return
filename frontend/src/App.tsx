@@ -1106,6 +1106,8 @@ function App() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
+        // Discard draft changes when closing via Escape
+        try { setDraftSelectedTables(selectedTables) } catch {}
         setPrefOpen(false)
         return
       }
@@ -1396,7 +1398,7 @@ function App() {
           {/* Preferences Floating Modal */}
           {prefOpen && (
             <div className="fixed inset-0 z-50">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={()=>{ setPrefOpen(false) }} />
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }} />
               <div
                 ref={prefModalRef}
                 role="dialog"
@@ -1412,7 +1414,7 @@ function App() {
                       <div className="hidden"></div>
                       <div className="hidden"></div>
                       <div className="relative group">
-                        <button aria-label="Close preferences" className="inline-flex items-center justify-center p-2 rounded-lg bg-transparent text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer" onClick={()=>{ setPrefOpen(false) }}>
+                        <button aria-label="Close preferences" className="inline-flex items-center justify-center p-2 rounded-lg bg-transparent text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }}>
                           <X className="w-5 h-5" strokeWidth={2.5} />
                         </button>
                         <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-40">
