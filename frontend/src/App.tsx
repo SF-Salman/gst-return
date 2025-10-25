@@ -17,7 +17,7 @@ function TopBar({ theme, onToggleTheme }: { theme: 'light'|'dark'|'system', onTo
   return (
     <header className="sticky top-0 z-40 h-16 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-xl border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between px-6">
       <div className="flex items-center gap-3">
-        <img src="icon-2024.png" alt="App icon" className="w-11 h-11 object-contain bg-transparent" />
+        <img src={import.meta.env.BASE_URL + 'icon-2024.png'} alt="App icon" className="w-11 h-11 object-contain bg-transparent" />
         <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">GST Returns Extractor</h1>
       </div>
       <div className="relative">
