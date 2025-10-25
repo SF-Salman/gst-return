@@ -1,6 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import tempfile
 import os
@@ -47,6 +47,18 @@ app.add_middleware(
 @app.get("/api/health")
 def health():
     return {"status": "ok", "time": datetime.datetime.utcnow().isoformat()}
+
+# Favicon fallback for browsers that request /favicon.ico
+@app.get("/favicon.ico")
+def favicon():
+    png_path = os.path.join(DIST_DIR, "icon-2024.png")
+    if os.path.exists(png_path):
+        return FileResponse(png_path, media_type="image/png")
+    # Fallback to public during dev
+    alt_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "icon-2024.png"))
+    if os.path.exists(alt_path):
+        return FileResponse(alt_path, media_type="image/png")
+    return JSONResponse(status_code=404, content={"error": "favicon not found"})
 
 # Frontend mount deferred until after API routes are registered (see bottom)
 DIST_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist"))
