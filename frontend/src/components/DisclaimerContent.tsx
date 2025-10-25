@@ -9,7 +9,7 @@ export default function DisclaimerContent() {
           <div className="flex items-start gap-4 p-5 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700">
             <Info className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
             <p className="text-neutral-800 dark:text-neutral-200 leading-relaxed text-sm">
-              This tool is intended for informational purposes only and should not be considered as professional tax advice. This tool is for the exclusive use of Varma & Varma Chartered Accountants.
+              This tool is intended for informational purposes only and should not be considered as professional tax advice.
             </p>
           </div>
 

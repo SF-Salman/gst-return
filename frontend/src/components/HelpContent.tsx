@@ -60,8 +60,7 @@ export default function HelpContent() {
         <div className="px-6 pb-6 space-y-2">
           <p className="leading-relaxed text-sm">
             If you have any questions or need support, please contact us at{' '}
-            <a href="mailto:support@varma.ai" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">support@varma.ai</a>
-            . (mail id to be updated)
+            <a href="mailto:farissalmanul60@gmail.com" className="text-indigo-600 dark:text-indigo-400 font-medium hover:underline">support@fincod.com</a>.
           </p>
           <p className="leading-relaxed text-sm">
             Write your feedback{' '}
