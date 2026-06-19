@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import Footer from './components/Footer'
-import { Upload, Settings, Download, CheckCircle, ChevronDown, HelpCircle, AlertTriangle, Sun, Moon, BarChart3, Filter, X, Check, PanelLeft, ArrowUpDown, ChevronsDown, ChevronsUp } from 'lucide-react'
+import AppHeader from './components/Header'
+import AppSidebar from './components/Sidebar'
+import { Download, CheckCircle, ChevronDown, BarChart3, Filter, X, Check, ArrowUpDown, ChevronsDown, ChevronsUp, Upload } from 'lucide-react'
 
 type ParseResult = Record<string, any> & { filename?: string, __error__?: string }
 
@@ -12,100 +14,6 @@ const inferDefaultApiBase = () => {
   return devPorts.has(port) ? 'http://127.0.0.1:8000' : window.location.origin
 }
 const API_BASE: string = (import.meta.env.VITE_API_BASE as string) || inferDefaultApiBase()
-
-function TopBar({ theme, onToggleTheme }: { theme: 'light'|'dark'|'system', onToggleTheme: ()=>void }) {
-  return (
-    <header className="sticky top-0 z-40 h-16 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-xl border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between px-6">
-      <div className="flex items-center gap-3">
-        <img src={import.meta.env.BASE_URL + 'icon-2024.png?v=2'} alt="App icon" className="w-11 h-11 object-contain bg-transparent" />
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">GST Returns Extractor</h1>
-      </div>
-      <div className="relative">
-        {(() => {
-          const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isDarkActive = theme === 'dark' || (theme === 'system' && prefersDark)
-          return (
-            <button
-              aria-label={isDarkActive ? 'Switch to light theme' : 'Switch to dark theme'}
-              title={isDarkActive ? 'Light' : 'Dark'}
-              onClick={() => onToggleTheme()}
-              aria-pressed={isDarkActive}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:border-indigo-500/60 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-            >
-              <Sun className="w-5 h-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute w-5 h-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </button>
-          )
-        })()}
-      </div>
-    </header>
-  )
-}
-
-function Sidebar({ open, onToggle, activeView, onSelectView, onOpenPreferences }: { open: boolean, onToggle: ()=>void, activeView: 'upload'|'preferences'|'help'|'disclaimer', onSelectView: (v:'upload'|'preferences'|'help'|'disclaimer')=>void, onOpenPreferences: ()=>void }) {
-  return (
-    <aside className={`hidden md:block ${open ? 'w-64' : 'w-14'} fixed top-0 bottom-0 left-0 transition-all duration-200 bg-white dark:bg-neutral-800 z-30 overflow-y-auto`}> 
-      <div className="sticky top-0 bg-white dark:bg-neutral-800 px-3 py-2 flex items-center justify-end">
-        <button
-          aria-label="Toggle sidebar"
-          onClick={onToggle}
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all cursor-pointer"
-        >
-          <PanelLeft className="w-5 h-5" />
-        </button>
-      </div>
-      <nav className="flex flex-col pt-1 py-0 px-3">
-        <div className="space-y-2">
-          <button
-            onClick={()=>onSelectView('upload')}
-            className={`w-full flex items-center gap-2 px-3.5 ${open ? 'py-2 justify-start' : 'py-1 justify-center'} text-sm rounded-xl transition-all cursor-pointer ${activeView==='upload' ? 'text-white shadow-md hover:shadow-lg hover:opacity-90' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200'}`}
-            style={activeView==='upload' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}
-          >
-            <Upload className="w-5 h-5 shrink-0" />
-            {open && <span className="font-semibold">Upload</span>}
-          </button>
-          <button
-            onClick={onOpenPreferences}
-            className={`w-full flex items-center gap-2 px-3.5 ${open ? 'py-2 justify-start' : 'py-1 justify-center'} text-sm rounded-xl transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 focus:outline-none focus-visible:outline-none focus-visible:ring-0`}
-          >
-            <Settings className="w-5 h-5 shrink-0" />
-            {open && <span className="font-semibold">Preferences</span>}
-          </button>
-          <button
-            onClick={()=>onSelectView('help')}
-            className={`w-full flex items-center gap-2 px-3.5 ${open ? 'py-2 justify-start' : 'py-1 justify-center'} text-sm rounded-xl transition-all cursor-pointer ${activeView==='help' ? 'text-white shadow-md hover:shadow-lg hover:opacity-90' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200'}`}
-            style={activeView==='help' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}
-          >
-            <HelpCircle className="w-5 h-5 shrink-0" />
-            {open && <span className="font-semibold">Help</span>}
-          </button>
-          <button
-            onClick={()=>onSelectView('disclaimer')}
-            className={`w-full flex items-center gap-2 px-3.5 ${open ? 'py-2 justify-start' : 'py-1 justify-center'} text-sm rounded-xl transition-all cursor-pointer ${activeView==='disclaimer' ? 'text-white shadow-md hover:shadow-lg hover:opacity-90' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200'}`}
-            style={activeView==='disclaimer' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}
-          >
-            <AlertTriangle className="w-5 h-5 shrink-0" />
-            {open && <span className="font-semibold">Disclaimer</span>}
-          </button>
-        </div>
-      </nav>
-    </aside>
-  )
-}
-
-function MobileNav({ activeView, onSelectView, onOpenPreferences }: { activeView: 'upload'|'preferences'|'help'|'disclaimer', onSelectView: (v:'upload'|'preferences'|'help'|'disclaimer')=>void, onOpenPreferences: ()=>void }) {
-  return (
-    <div className="md:hidden max-w-full overflow-hidden sm:max-w-none sm:overflow-visible bg-white dark:bg-neutral-800 rounded-2xl shadow-soft border border-neutral-200 dark:border-neutral-700 p-3">
-      <div className="flex flex-col sm:flex-row gap-2">
-        <button onClick={()=>onSelectView('upload')} className={`w-full sm:flex-1 sm:w-auto px-2 py-2 sm:px-3 sm:py-2 text-sm rounded-lg border cursor-pointer ${activeView==='upload' ? 'text-white border-transparent hover:opacity-90' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`} style={activeView==='upload' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}>Upload</button>
-        <button onClick={()=>{ onOpenPreferences(); }} className={`w-full sm:flex-1 sm:w-auto px-2 py-2 sm:px-3 sm:py-2 text-sm rounded-lg border cursor-pointer bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus-visible:outline-none focus-visible:ring-0`}>Preferences</button>
-        <button onClick={()=>onSelectView('help')} className={`w-full sm:flex-1 sm:w-auto px-2 py-2 sm:px-3 sm:py-2 text-sm rounded-lg border cursor-pointer ${activeView==='help' ? 'text-white border-transparent hover:opacity-90' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`} style={activeView==='help' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}>Help</button>
-        <button onClick={()=>onSelectView('disclaimer')} className={`w-full sm:flex-1 sm:w-auto px-2 py-2 sm:px-3 sm:py-2 text-sm rounded-lg border cursor-pointer ${activeView==='disclaimer' ? 'text-white border-transparent hover:opacity-90' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`} style={activeView==='disclaimer' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}>Disclaimer</button>
-      </div>
-    </div>
-  )
-}
 
 // Removed unused Dropdown component
 
@@ -126,7 +34,7 @@ function SplitDropdown({ value, options, onChange, widthClass = 'w-52' }: { valu
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="relative inline-flex items-center justify-start w-full h-11 px-4 pr-10 rounded-xl border border-neutral-200 bg-white text-neutral-800 transition-all hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
+        className="relative inline-flex items-center justify-start w-full h-11 px-4 pr-10 rounded-xl border border-border bg-surf text-tx transition-all hover:bg-sub focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300  cursor-pointer"
         aria-haspopup="menu"
         aria-expanded={open}
       >
@@ -138,16 +46,16 @@ function SplitDropdown({ value, options, onChange, widthClass = 'w-52' }: { valu
       {open && (
         <div
           role="menu"
-          className="absolute left-0 right-0 z-40 mt-2 w-full min-w-full rounded-xl border border-neutral-200 bg-white shadow-lg overflow-hidden dark:border-neutral-700 dark:bg-neutral-800 shadow-soft max-h-48 overflow-y-auto"
+          className="absolute left-0 right-0 z-40 mt-2 w-full min-w-full rounded-xl border border-border bg-surf shadow-lg overflow-hidden  shadow-soft max-h-48 overflow-y-auto"
         >
           <ul className="py-1 px-1 space-y-1">
             {options.map(opt => (
               <li key={opt}>
                 <button
-                  className={`relative w-full text-left px-3 py-1.5 pl-8 text-sm rounded-lg transition-colors text-neutral-800 dark:text-neutral-200 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700`}
+                  className={`relative w-full text-left px-3 py-1.5 pl-8 text-sm rounded-lg transition-colors text-tx cursor-pointer hover:bg-sub`}
                   onClick={() => { onChange(opt); setOpen(false) }}
                 >
-                  {opt === value && <Check className="absolute left-3 w-4 h-4 text-[#14cba1]" />}
+                  {opt === value && <Check className="absolute left-3 w-4 h-4 text-[#0ea5a3]" />}
                   <span>{opt}</span>
                 </button>
               </li>
@@ -206,22 +114,22 @@ function UploadCard({ onProcess, onFilesSelected, progressDone = 0, progressTota
         onDragOver={(e)=>{e.preventDefault(); setIsDragging(true)}}
         onDragLeave={()=>setIsDragging(false)}
         onDrop={handleDrop}
-        className={`mx-6 border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition-all min-h-[18rem] ${isDragging ? 'border-indigo-500/60 bg-indigo-50/30 dark:border-indigo-500/60 dark:bg-indigo-900/20' : 'border-neutral-200 bg-white dark:border-neutral-600 dark:bg-neutral-800'} hover:border-indigo-400/60 cursor-pointer`}
+        className={`mx-6 border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition-all min-h-[18rem] ${isDragging ? 'border-acc/60 bg-acc/5 dark:border-acc/60 dark:bg-acc/10' : 'border-border bg-surf'} hover:border-acc/50 cursor-pointer`}
       >
-        <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
-          <Upload className="w-8 h-8 text-indigo-600" />
+        <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-acc/15 to-acc/5 flex items-center justify-center">
+          <Upload className="w-8 h-8 text-acc" />
         </div>
-        <p className="text-neutral-500 dark:text-neutral-300 mb-3 text-sm font-medium">Drag and drop files here or select manually</p>
+        <p className="text-tx3 mb-3 text-sm font-medium">Drag and drop files here or select manually</p>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 w-full">
           <button
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-44 h-11 px-4 rounded-xl border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-44 h-11 px-4 rounded-xl border border-border bg-surf text-tx hover:bg-sub shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc  cursor-pointer"
             onClick={()=>fileInputRef.current?.click()}
           >
             <Upload className="w-4 h-4" /> <span className="font-semibold">Choose Files</span>
           </button>
           <button
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-44 h-11 px-4 rounded-xl text-white hover:opacity-90 shadow-lg shadow-indigo-500/15 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer hover:shadow-xl"
-            style={{ background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' }}
+            className="inline-flex items-center justify-center gap-2 w-full sm:w-44 h-11 px-4 rounded-xl text-white hover:opacity-90 shadow-lg shadow-acc/15 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer hover:shadow-xl"
+            style={{ background: 'linear-gradient(to right, var(--color-acc) 0%, #e57373 100%)' }}
             onClick={()=>onProcess(files, returnType, fileFormat)}
           >
           <BarChart3 className="w-4 h-4" /> <span className="font-semibold">Extract</span>
@@ -229,7 +137,7 @@ function UploadCard({ onProcess, onFilesSelected, progressDone = 0, progressTota
         </div>
         <input ref={fileInputRef} className="hidden" type="file" multiple accept={fileFormat==='PDF' ? '.pdf' : '.json'} onChange={handleSelect} />
         {files.length > 0 && (
-          <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300">{files.length} file(s) selected</p>
+          <p className="mt-3 text-sm text-tx3">{files.length} file(s) selected</p>
         )}
 
         {/* Inline progress bar with reserved space; clamp and guard overflow */}
@@ -241,9 +149,9 @@ function UploadCard({ onProcess, onFilesSelected, progressDone = 0, progressTota
             <div className="mt-6">
               <div className="flex items-center gap-3">
                 <div className={`flex-1 h-3 rounded-full overflow-hidden bg-transparent ${progressTotal ? '' : 'invisible'}`}>
-                  <div className="h-3 bg-[#14cba1] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                  <div className="h-3 bg-[#0ea5a3] rounded-full transition-all" style={{ width: `${pct}%` }} />
                 </div>
-                <div className={`text-sm text-neutral-700 dark:text-neutral-300 whitespace-nowrap ${showNumbers ? '' : 'invisible'}`}>{safeDone}/{progressTotal}</div>
+                <div className={`text-sm text-tx2 whitespace-nowrap ${showNumbers ? '' : 'invisible'}`}>{safeDone}/{progressTotal}</div>
               </div>
             </div>
           )
@@ -584,17 +492,17 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
 
 
     return (
-      <div className="min-w-[48rem] text-xs rounded-2xl shadow-sm bg-white dark:bg-neutral-800">
+      <div className="min-w-[48rem] text-xs rounded-2xl shadow-sm bg-surf">
         <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: rowsExceedLimit ? maxHeightPx : undefined }}>
         {label ? (
-          <div className="sticky top-0 z-10 px-6 py-1 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50/90 dark:bg-neutral-700/90 backdrop-blur-md text-sm font-semibold text-neutral-800 dark:text-neutral-100 flex items-center justify-between">
+          <div className="sticky top-0 z-10 px-6 py-1 border-b border-border bg-sub/80 backdrop-blur-md text-sm font-semibold text-tx flex items-center justify-between">
             <span className="truncate" title={label}>{label}</span>
             <div className="flex items-center gap-2">
               <div className={`relative group ${prefOpen ? 'hidden' : ''}`}>
                 <button
                   onClick={() => { const next = !isCollapsed; if (onCollapseToggle) { onCollapseToggle(next) } else { setCollapsed(next) } }}
                   aria-label={isCollapsed ? "Expand table" : "Collapse table"}
-                  className="p-1 rounded cursor-pointer hover:bg-neutral-200/70 dark:hover:bg-neutral-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="p-1 rounded cursor-pointer hover:bg-neutral-200/70 dark:hover:bg-neutral-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc"
                 >
                   <ChevronDown className={`w-4 h-4 transition-transform ${isCollapsed ? 'rotate-0' : 'rotate-180'}`} strokeWidth={2.5} />
                 </button>
@@ -606,7 +514,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                 <button
                   onClick={() => { if (onDownloadExcel && label) onDownloadExcel(label) }}
                   aria-label="Download table"
-                  className={`relative z-0 p-1 rounded cursor-pointer hover:bg-neutral-200/70 dark:hover:bg-neutral-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${prefOpen ? 'opacity-0 pointer-events-none' : ''}`}
+                  className={`relative z-0 p-1 rounded cursor-pointer hover:bg-neutral-200/70 dark:hover:bg-neutral-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc ${prefOpen ? 'opacity-0 pointer-events-none' : ''}`}
                 >
                   <Download className="w-4 h-4" strokeWidth={2.5} />
                 </button>
@@ -619,15 +527,15 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
         ) : null}
         {!isCollapsed && (
         <Table className="min-w-full w-full">
-          <TableHeader className="sticky top-[2rem] z-10 border-b dark:border-neutral-700 bg-white/95 dark:bg-neutral-800/95 backdrop-blur-md">
+          <TableHeader className="sticky top-[2rem] z-10 border-b dark:border-neutral-700 bg-surf/95 backdrop-blur-md">
             <TableRow>
-              <TableHead className="sticky top-[2rem] left-0 z-10 px-1 py-[2px] text-sm font-semibold bg-white/95 dark:bg-neutral-800/95 backdrop-blur-md">Period</TableHead>
+              <TableHead className="sticky top-[2rem] left-0 z-10 px-1 py-[2px] text-sm font-semibold bg-surf/95 backdrop-blur-md">Period</TableHead>
               
               {tableRows.map((row, ri) => (
                 <TableHead
                   key={ri}
                   onClick={() => { setSortRowIdx(prev => prev === ri ? null : ri); setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc')) }}
-                  className="sticky top-[2rem] z-[5] px-1 py-[2px] text-sm font-semibold bg-white/95 dark:bg-neutral-800/95 backdrop-blur-md cursor-pointer select-none text-right"
+                  className="sticky top-[2rem] z-[5] px-1 py-[2px] text-sm font-semibold bg-surf/95 backdrop-blur-md cursor-pointer select-none text-right"
                   title="Click to sort columns by this row"
                 >
                   <span className="inline-flex items-center gap-1 justify-end w-full">
@@ -638,27 +546,27 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody className="divide-y divide-neutral-100 dark:divide-neutral-700">
+          <TableBody className="divide-y divide-border">
             {sortedIdx.map((ci) => (
-              <TableRow key={ci} className="odd:bg-white even:bg-neutral-50 dark:odd:bg-neutral-800 dark:even:bg-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all">
-                <TableCell className="px-1 py-[2px] sticky left-0 bg-white dark:bg-neutral-800 whitespace-nowrap z-10"><span className="text-[11px] leading-[1.1] text-neutral-900 dark:text-neutral-100">{columns[ci] || 'Period'}</span></TableCell>
+              <TableRow key={ci} className="odd:bg-surf even:bg-sub/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all">
+                <TableCell className="px-1 py-[2px] sticky left-0 bg-surf whitespace-nowrap z-10"><span className="text-[11px] leading-[1.1] text-tx">{columns[ci] || 'Period'}</span></TableCell>
                 {tableRows.map((row, ri) => {
                   const val = (row.values || [])[ci]
                   const isNum = Number.isFinite(toNumber(val))
                   return (
                     <TableCell key={ri} className={`px-1 py-[2px] ${isNum ? 'text-right tabular-nums' : ''}`}>
-                      <span className="text-[11px] leading-[1.1] text-neutral-900 dark:text-neutral-100">{fmt(val)}</span>
+                      <span className="text-[11px] leading-[1.1] text-tx">{fmt(val)}</span>
                     </TableCell>
                   )
                 })}
               </TableRow>
             ))}
-            <TableRow className="bg-neutral-100 dark:bg-neutral-700">
-              <TableCell className="px-1 py-[2px] text-xs font-semibold sticky left-0 bg-neutral-100 dark:bg-neutral-700 whitespace-nowrap z-10">Total</TableCell>
+            <TableRow className="bg-sub">
+              <TableCell className="px-1 py-[2px] text-xs font-semibold sticky left-0 bg-sub whitespace-nowrap z-10">Total</TableCell>
               
               {columnTotals.map((tot, ri) => (
                   <TableCell key={`tot-${ri}`} className="px-1 py-[2px] text-right tabular-nums">
-                    <span className="text-[11px] font-semibold text-neutral-900 dark:text-neutral-100">{fmt(tot)}</span>
+                    <span className="text-[11px] font-semibold text-tx">{fmt(tot)}</span>
                   </TableCell>
                 ))}
             </TableRow>
@@ -751,7 +659,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
   }
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-soft border border-neutral-200 dark:border-neutral-700 p-4 sm:p-6 font-inter">
+    <div className="bg-surf rounded-2xl shadow-soft border border-border p-4 sm:p-6 font-inter">
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {/* moved Filter Tables to the right next to global Download */}
         <div className="flex-1 hidden sm:block" />
@@ -759,7 +667,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
           <button
             onClick={toggleAllTablesCollapsed}
             aria-label={allCollapsed ? "Expand all tables" : "Collapse all tables"}
-            className="inline-flex items-center justify-center p-2 rounded-lg text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+            className="inline-flex items-center justify-center p-2 rounded-lg text-tx2 hover:text-tx transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
           >
             {allCollapsed ? <ChevronsDown className="w-5 h-5" strokeWidth={2.5} /> : <ChevronsUp className="w-5 h-5" strokeWidth={2.5} />}
           </button>
@@ -771,29 +679,29 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
           <button
             onClick={()=>setFilterOpen(!filterOpen)}
             aria-label="Filter tables"
-            className="inline-flex items-center justify-center p-2 rounded-lg text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+            className="inline-flex items-center justify-center p-2 rounded-lg text-tx2 hover:text-tx transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
           >
             <Filter className="w-5 h-5" strokeWidth={2.5} />
           </button>
           <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-40">Filter tables</div>
           {filterOpen && (
-            <div className="absolute right-0 z-40 mt-2 mb-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-soft p-3"
+            <div className="absolute right-0 z-40 mt-2 mb-4 rounded-xl border border-border bg-surf shadow-soft p-3"
                  style={{ minWidth: `${Math.max(...selectedCategories.map(c => String(c).length), 24) + 8}ch` }}>
               {(() => {
                 const allSelected = selectedCategories.length > 0 && displayedTables.length === selectedCategories.length
                 const noneSelected = displayedTables.length === 0
                 return (
                   <div className="flex items-center justify-between mb-2">
-                    <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden mx-2">
+                    <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-border overflow-hidden mx-2">
                       <button
                         onClick={selectAllTables}
-                        className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                        className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
                       >
                         All
                       </button>
                       <button
                         onClick={deselectAllTables}
-                        className={`text-xs font-semibold px-2 py-0.5 border-l border-neutral-200 dark:border-neutral-700 cursor-pointer ${noneSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                        className={`text-xs font-semibold px-2 py-0.5 border-l border-border cursor-pointer ${noneSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
                       >
                         None
                       </button>
@@ -803,17 +711,17 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
               })()}
               <div className="max-h-64 overflow-y-auto space-y-0.5 mb-2">
                 {selectedCategories.length === 0 ? (
-                   <div className="px-2 py-1 text-xs text-neutral-600 dark:text-neutral-300">
+                   <div className="px-2 py-1 text-xs text-tx3">
                      No matching tables for current preferences. Adjust selections under Preferences.
                    </div>
                  ) : (
                    selectedCategories.map((cat) => {
                      const checked = displayedTables.includes(cat)
                      return (
-                       <label key={cat} className="flex items-center gap-1.5 text-sm px-2 py-0.5 rounded hover:bg-neutral-50 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap">
+                       <label key={cat} className="flex items-center gap-1.5 text-sm px-2 py-0.5 rounded hover:bg-sub cursor-pointer whitespace-nowrap">
                          <input type="checkbox" className="sr-only" checked={checked} onChange={()=>toggleTable(cat)} />
-                         <Check className={`w-4 h-4 ${checked ? 'text-[#14cba1]' : 'opacity-0'}`} aria-hidden="true" />
-                         <span className="text-neutral-800 dark:text-neutral-200">{cat}</span>
+                         <Check className={`w-4 h-4 ${checked ? 'text-[#0ea5a3]' : 'opacity-0'}`} aria-hidden="true" />
+                         <span className="text-tx">{cat}</span>
                        </label>
                      )
                    })
@@ -829,7 +737,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
               aria-label="Download previewed tables"
               aria-haspopup="menu"
               aria-expanded={tablesMenuOpen}
-              className="inline-flex items-center justify-center p-2 rounded-lg text-[#5b35fc] hover:text-[#8c52ff] transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5b35fc] cursor-pointer"
+              className="inline-flex items-center justify-center p-2 rounded-lg text-acc hover:opacity-70 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
             >
               <Download className="w-5 h-5" strokeWidth={2.5} />
             </button>
@@ -841,7 +749,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
             <div
               role="menu"
               aria-label="Tables export options"
-              className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-neutral-200 bg-white dark:bg-neutral-800 dark:border-neutral-700 shadow-lg overflow-hidden shadow-soft z-[100] max-h-48 overflow-y-auto"
+              className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-border bg-surf shadow-lg overflow-hidden shadow-soft z-[100] max-h-48 overflow-y-auto"
             >
               <ul className="py-1 px-1 space-y-1">
                 <li>
@@ -849,7 +757,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                     role="menuitem"
                     tabIndex={0}
                     onClick={()=>{ setExportOnlyFiltered(true); setTablesMenuOpen(false); downloadTablesExcel(true); }}
-                    className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap"
+                    className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-tx hover:bg-sub cursor-pointer whitespace-nowrap"
                   >
                     Download filtered tables only
                   </button>
@@ -859,7 +767,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                     role="menuitem"
                     tabIndex={0}
                     onClick={()=>{ setExportOnlyFiltered(false); setTablesMenuOpen(false); downloadTablesExcel(false); }}
-                    className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap"
+                    className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-tx hover:bg-sub cursor-pointer whitespace-nowrap"
                   >
                     Download all preferred tables
                   </button>
@@ -869,23 +777,23 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
           )}
         </div>
       </div>
-      {!results.length && <p className="text-sm text-neutral-600 dark:text-neutral-300">No results yet.</p>}
+      {!results.length && <p className="text-sm text-tx3">No results yet.</p>}
       {!!results.length && (
         <div className="space-y-6">
           {/* Summary tab removed */}
             <>
-              <h3 className="text-base font-semibold text-neutral-800 dark:text-neutral-100">Preview results</h3>
+              <h3 className="text-base font-semibold text-tx">Preview results</h3>
               {/* Hint above tables */}
-              <div className="text-xs text-neutral-600 dark:text-neutral-300">Choose preferred tables from the Preferences menu to refine the list.</div>
+              <div className="text-xs text-tx3">Choose preferred tables from the Preferences menu to refine the list.</div>
               {!summaryData && (
-                <div className="rounded-xl border border-neutral-100 dark:border-neutral-700/50 bg-white dark:bg-neutral-800 p-4 text-sm text-neutral-700 dark:text-neutral-300">
+                <div className="rounded-xl border border-border bg-surf p-4 text-sm text-tx2">
                   Tables will appear here after processing.
                 </div>
               )}
               {summaryData && (
                 <div className="space-y-6">
                   {displayedTables.length === 0 && (
-                    <div className="rounded-xl border border-neutral-100 dark:border-neutral-700/50 bg-white dark:bg-neutral-800 p-3 text-sm text-neutral-700 dark:text-neutral-300">
+                    <div className="rounded-xl border border-border bg-surf p-3 text-sm text-tx2">
                       {selectedCategories.length === 0
                         ? 'No matching tables for current preferences. Adjust selections under Preferences.'
                         : 'No tables selected. Use Filter or Preferences to choose tables.'}
@@ -911,16 +819,16 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                                       const sn = sub.name || ''
                                       const rawTitle = `${sec} - ${cn} - ${sn}`
                                       const title = rawTitle.replace(/^[\s-]+|[\s-]+$/g, '')
-                                      return (<div className="font-semibold text-neutral-800 dark:text-neutral-200">{title}</div>)
+                                      return (<div className="font-semibold text-tx">{title}</div>)
                                     })()}
                                     {sortedIdx.map((ci) => (
-                                      <div key={ci} className="rounded-xl border bg-white dark:bg-neutral-800 dark:border-neutral-700 p-3 shadow-md hover:shadow-lg transition-all">
-                                        <div className="font-medium mb-2 text-neutral-800 dark:text-neutral-200">{summaryData.columns[ci] || 'Period'}</div>
+                                      <div key={ci} className="rounded-xl border bg-surf dark:border-neutral-700 p-3 shadow-md hover:shadow-lg transition-all">
+                                        <div className="font-medium mb-2 text-tx">{summaryData.columns[ci] || 'Period'}</div>
                                         <div className="space-y-1">
                                           {sub.rows.map((row, ri) => (
                                             <div key={ri} className="flex items-center justify-between text-xs">
-                                              <span className="text-neutral-600 dark:text-neutral-300 whitespace-nowrap mr-2">{row.description || row.key}</span>
-                                              <span className="font-medium whitespace-nowrap text-neutral-900 dark:text-neutral-100 text-right tabular-nums">{fmt((row.values || [])[ci])}</span>
+                                              <span className="text-tx3 whitespace-nowrap mr-2">{row.description || row.key}</span>
+                                              <span className="font-medium whitespace-nowrap text-tx text-right tabular-nums">{fmt((row.values || [])[ci])}</span>
                                             </div>
                                           ))}
                                         </div>
@@ -935,16 +843,16 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                                 const cn = cat.name || 'Category'
                                 const rawTitle = `${sec} - ${cn}`
                                 const title = rawTitle.replace(/^[\s-]+|[\s-]+$/g, '')
-                                return (<div className="font-semibold text-neutral-800 dark:text-neutral-200">{title}</div>)
+                                return (<div className="font-semibold text-tx">{title}</div>)
                               })()}
                               return sortedIdx.map((ci) => (
-                                <div key={ci} className="rounded-xl border bg-white dark:bg-neutral-800 dark:border-neutral-700 p-3 shadow-md hover:shadow-lg transition-all">
-                                  <div className="font-medium mb-2 text-neutral-800 dark:text-neutral-200">{summaryData.columns[ci] || 'Period'}</div>
+                                <div key={ci} className="rounded-xl border bg-surf dark:border-neutral-700 p-3 shadow-md hover:shadow-lg transition-all">
+                                  <div className="font-medium mb-2 text-tx">{summaryData.columns[ci] || 'Period'}</div>
                                   <div className="space-y-1">
                                     {rows.map((row, ri) => (
                                       <div key={ri} className="flex items-center justify-between text-xs">
-                                        <span className="text-neutral-600 dark:text-neutral-300 whitespace-nowrap mr-2">{row.description || row.key}</span>
-                                        <span className="font-medium whitespace-nowrap text-neutral-900 dark:text-neutral-100 text-right tabular-nums">{fmt((row.values || [])[ci])}</span>
+                                        <span className="text-tx3 whitespace-nowrap mr-2">{row.description || row.key}</span>
+                                        <span className="font-medium whitespace-nowrap text-tx text-right tabular-nums">{fmt((row.values || [])[ci])}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -1350,16 +1258,22 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col font-inter text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900">
-      <div className="w-full max-w-full p-0 flex flex-col md:flex-row gap-0 flex-1">
-        <Sidebar open={sidebarOpen} onToggle={()=>setSidebarOpen(!sidebarOpen)} activeView={activeView} onSelectView={setActiveView} onOpenPreferences={()=>{ setPrefOpen(true) }} />
-        <div className={`${sidebarOpen ? 'md:ml-64' : 'md:ml-14'} flex-1 min-w-0 space-y-4 sm:space-y-6`}>
-          <TopBar theme={theme} onToggleTheme={toggleTheme} />
-          <MobileNav activeView={activeView} onSelectView={setActiveView} onOpenPreferences={()=>{ setPrefOpen(true) }} />
+    <div className="min-h-screen flex font-inter text-tx bg-bg">
+      <AppSidebar
+        activeView={activeView === 'preferences' ? 'upload' : activeView}
+        onSelectView={setActiveView}
+        onOpenPreferences={()=>{ setPrefOpen(true) }}
+        isCollapsed={!sidebarOpen}
+        onToggle={()=>setSidebarOpen(!sidebarOpen)}
+      />
+      <div className="flex-1 min-w-0 flex flex-col">
+        <AppHeader theme={theme} onToggleTheme={toggleTheme} statusLabel={results.length ? `${results.length} file(s) processed` : null} />
+        <div className="flex-1 space-y-4 sm:space-y-6 py-4 sm:py-6">
           {activeView === 'upload' && (
             <>
               <UploadCard onProcess={onProcess} onFilesSelected={()=>{
                 // Abort any in-flight extraction and reset state on new selection
+
                 try { abortControllerRef.current?.abort() } catch {}
                 abortControllerRef.current = null
                 processIdRef.current++
@@ -1370,7 +1284,7 @@ function App() {
               <div className="space-y-3">
                 <div className="mx-6 bg-white rounded-2xl shadow-soft border border-neutral-200 px-6 py-4 dark:bg-neutral-800 dark:border-neutral-700">
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-between gap-2 sm:gap-0 max-w-full overflow-hidden">
-                    <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">Raw Data Export</div>
+                    <div className="text-sm font-semibold text-tx">Raw Data Export</div>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       <div className="relative group">
                         <button
@@ -1378,7 +1292,7 @@ function App() {
                           aria-label="Download raw data"
                           disabled={!(progress.total > 0 && progress.done >= progress.total)}
                           aria-disabled={!(progress.total > 0 && progress.done >= progress.total)}
-                          className="inline-flex items-center justify-center p-2 rounded-lg text-[#14cba1] hover:text-[#14cba1]/80 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14cba1] disabled:opacity-60 disabled:cursor-not-allowed w-auto cursor-pointer"
+                          className="inline-flex items-center justify-center p-2 rounded-lg text-[#0ea5a3] hover:text-[#0ea5a3]/80 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0ea5a3] disabled:opacity-60 disabled:cursor-not-allowed w-auto cursor-pointer"
                         >
                           <Download className="w-5 h-5" strokeWidth={2.5} />
                         </button>
@@ -1405,16 +1319,16 @@ function App() {
                 aria-modal="true"
                 aria-labelledby="preferences-title"
                 tabIndex={-1}
-                className="relative mt-10 mx-auto w-[calc(100%-2rem)] sm:w-auto max-w-4xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-xl flex flex-col max-h-[85vh] overflow-hidden"
+                className="relative mt-10 mx-auto w-[calc(100%-2rem)] sm:w-auto max-w-4xl bg-surf border border-border rounded-2xl shadow-xl flex flex-col max-h-[85vh] overflow-hidden"
               >
-                <div className="px-8 py-6 border-b border-neutral-200 dark:border-neutral-700">
+                <div className="px-8 py-6 border-b border-border">
                   <div className="flex items-center justify-between">
                     <h2 id="preferences-title" className="text-2xl font-semibold">Preferences</h2>
                     <div className="flex gap-2 items-center">
                       <div className="hidden"></div>
                       <div className="hidden"></div>
                       <div className="relative group">
-                        <button aria-label="Close preferences" className="inline-flex items-center justify-center p-2 rounded-lg bg-transparent text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }}>
+                        <button aria-label="Close preferences" className="inline-flex items-center justify-center p-2 rounded-lg bg-transparent text-tx2 hover:text-tx transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }}>
                           <X className="w-5 h-5" strokeWidth={2.5} />
                         </button>
                         <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-40">
@@ -1423,14 +1337,14 @@ function App() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Choose the tables to be extracted from the given list. Your preferences will be saved.</div>
+                  <div className="mt-1 text-xs text-tx3">Choose the tables to be extracted from the given list. Your preferences will be saved.</div>
                   <div className="mt-3 flex items-center">
                     <div className="flex-1"></div>
                     <div className="flex-1 flex justify-center">
-                      <div className="relative inline-flex items-center w-64 h-10 rounded-3xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/70 shadow-sm overflow-hidden">
-                        <span className={`absolute top-0 left-0 h-full w-1/2 rounded-3xl transition-transform duration-300`} style={{ background: 'linear-gradient(to right, rgba(91,53,252,0.15), rgba(140,82,255,0.15))', transform: activeSettingsTab==='GSTR-3B' ? 'translateX(100%)' : 'translateX(0%)' }} />
-                        <button onClick={()=>setActiveSettingsTab('GSTR-1')} className={`relative z-10 flex-1 h-full text-sm font-medium ${activeSettingsTab==='GSTR-1' ? 'text-[#5b35fc]' : 'text-neutral-700 dark:text-neutral-200'} cursor-pointer`}>GSTR-1</button>
-                        <button onClick={()=>setActiveSettingsTab('GSTR-3B')} className={`relative z-10 flex-1 h-full text-sm font-medium ${activeSettingsTab==='GSTR-3B' ? 'text-[#5b35fc]' : 'text-neutral-700 dark:text-neutral-200'} cursor-pointer`}>GSTR-3B</button>
+                      <div className="relative inline-flex items-center w-64 h-10 rounded-3xl border border-border bg-surf/70 shadow-sm overflow-hidden">
+                        <span className={`absolute top-0 left-0 h-full w-1/2 rounded-3xl transition-transform duration-300`} style={{ background: 'linear-gradient(to right, rgba(154,51,36,0.12), rgba(229,115,115,0.15))', transform: activeSettingsTab==='GSTR-3B' ? 'translateX(100%)' : 'translateX(0%)' }} />
+                        <button onClick={()=>setActiveSettingsTab('GSTR-1')} className={`relative z-10 flex-1 h-full text-sm font-medium ${activeSettingsTab==='GSTR-1' ? 'text-acc' : 'text-tx2'} cursor-pointer`}>GSTR-1</button>
+                        <button onClick={()=>setActiveSettingsTab('GSTR-3B')} className={`relative z-10 flex-1 h-full text-sm font-medium ${activeSettingsTab==='GSTR-3B' ? 'text-acc' : 'text-tx2'} cursor-pointer`}>GSTR-3B</button>
                       </div>
                     </div>
                     <div className="flex-1 flex justify-end items-center gap-2">
@@ -1439,16 +1353,16 @@ function App() {
                         const allSelected = allCats.length > 0 && (draftSelectedTables[activeSettingsTab] || []).length === allCats.length
                         const noneSelected = (draftSelectedTables[activeSettingsTab] || []).length === 0
                         return (
-                          <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                          <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-border overflow-hidden">
                             <button
                               onClick={()=>setDraftSelectedTables(prev => ({ ...prev, [activeSettingsTab]: allCats }))}
-                              className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                              className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
                             >
                               All
                             </button>
                             <button
                               onClick={()=>setDraftSelectedTables(prev => ({ ...prev, [activeSettingsTab]: [] }))}
-                              className={`text-xs font-semibold px-2 py-0.5 border-l border-neutral-200 dark:border-neutral-700 cursor-pointer ${noneSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                              className={`text-xs font-semibold px-2 py-0.5 border-l border-border cursor-pointer ${noneSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
                             >
                               None
                             </button>
@@ -1464,7 +1378,7 @@ function App() {
                             const allOpen = headings.length > 0 && headings.every(h => !!expandedSections[activeSettingsTab]?.[h])
                             return allOpen ? 'Collapse All' : 'Expand All'
                           })()}
-                          className="inline-flex items-center justify-center p-2 rounded-lg text-[#5b35fc] hover:text-[#8c52ff] transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5b35fc] cursor-pointer"
+                          className="inline-flex items-center justify-center p-2 rounded-lg text-acc hover:opacity-70 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
                         >
                           {(() => {
                             const sections = schemaStructure[activeSettingsTab] || []
@@ -1490,9 +1404,9 @@ function App() {
                     const heading = section.heading || 'Section'
                     const isOpen = expandedSections[activeSettingsTab][heading]
                     return (
-                      <div key={si} className="rounded-xl border border-neutral-100 dark:border-neutral-700/50 shadow">
+                      <div key={si} className="rounded-xl border border-border shadow">
                         <div
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 cursor-pointer"
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-sub cursor-pointer"
                           role="button"
                           aria-expanded={isOpen}
                           tabIndex={0}
@@ -1500,8 +1414,8 @@ function App() {
                           onKeyDown={(e)=>{ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleExpand(activeSettingsTab, heading) } }}
                         >
                           <div className="inline-flex items-center gap-2">
-                            <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{heading}</span>
-                            <ChevronDown className={`w-5 h-5 text-neutral-600 dark:text-neutral-300 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`} strokeWidth={2.5} />
+                            <span className="text-sm font-medium text-tx">{heading}</span>
+                            <ChevronDown className={`w-5 h-5 text-tx3 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`} strokeWidth={2.5} />
                           </div>
                           {(() => {
                             const catsInSection = (section.categories || []).map(c => c.name)
@@ -1512,18 +1426,18 @@ function App() {
                               <div
                                 role="group"
                                 aria-label="Select range"
-                                className="inline-flex rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"
+                                className="inline-flex rounded-2xl border border-border overflow-hidden"
                                 onClick={(e)=>e.stopPropagation()}
                               >
                                 <button
                                   onClick={()=>setSectionSelection(activeSettingsTab, heading, true)}
-                                  className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                                  className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
                                 >
                                   All
                                 </button>
                                 <button
                                   onClick={()=>setSectionSelection(activeSettingsTab, heading, false)}
-                                  className={`text-xs font-semibold px-2 py-0.5 border-l border-neutral-200 dark:border-neutral-700 cursor-pointer ${noneSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                                  className={`text-xs font-semibold px-2 py-0.5 border-l border-border cursor-pointer ${noneSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
                                 >
                                   None
                                 </button>
@@ -1535,10 +1449,10 @@ function App() {
                           <div className="px-4 pb-3">
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                               {section.categories.map((cat, ci) => (
-                                <label key={ci} className="flex items-center gap-2 rounded-lg border border-neutral-100 dark:border-neutral-700/50 bg-white dark:bg-neutral-800 p-2 hover:shadow hover:border-neutral-200 transition-all cursor-pointer">
+                                <label key={ci} className="flex items-center gap-2 rounded-lg border border-border bg-surf p-2 hover:shadow hover:border-border2 transition-all cursor-pointer">
                                   <input type="checkbox" className="sr-only" checked={draftSelectedTables[activeSettingsTab].includes(cat.name)} onChange={()=>toggleCategoryDraft(activeSettingsTab, cat.name)} />
-                                  <Check className={`w-4 h-4 shrink-0 ${draftSelectedTables[activeSettingsTab].includes(cat.name) ? 'text-[#14cba1]' : 'opacity-0'}`} aria-hidden="true" />
-                                  <span className="font-medium text-xs text-neutral-800 dark:text-neutral-200">{cat.name}</span>
+                                  <Check className={`w-4 h-4 shrink-0 ${draftSelectedTables[activeSettingsTab].includes(cat.name) ? 'text-[#0ea5a3]' : 'opacity-0'}`} aria-hidden="true" />
+                                  <span className="font-medium text-xs text-tx">{cat.name}</span>
                                 </label>
                               ))}
                             </div>
@@ -1547,11 +1461,11 @@ function App() {
                       </div>
                     )
                   })}
-                  <p className="text-xs text-neutral-600 dark:text-neutral-300">Selections follow the original schema order and are saved per return type.</p>
+                  <p className="text-xs text-tx3">Selections follow the original schema order and are saved per return type.</p>
                 </div>
-                <div className="px-8 py-6 border-t border-neutral-200 dark:border-neutral-700 bg-white/60 dark:bg-neutral-800/60 flex items-center justify-end gap-2">
-                  <button className="inline-flex items-center justify-center gap-2 px-4 h-11 text-sm rounded-xl border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 cursor-pointer" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }}>Cancel</button>
-                  <button className="inline-flex items-center justify-center gap-2 px-4 h-11 text-sm rounded-xl text-white hover:opacity-90 shadow-lg shadow-indigo-500/15 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer hover:shadow-xl" style={{ background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' }} onClick={()=>{ savePreferences(); setPrefOpen(false) }}>Save Preferences</button>
+                <div className="px-8 py-6 border-t border-border bg-surf/60 flex items-center justify-end gap-2">
+                  <button className="inline-flex items-center justify-center gap-2 px-4 h-11 text-sm rounded-xl border border-border bg-surf text-tx hover:bg-sub shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc  cursor-pointer" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }}>Cancel</button>
+                  <button className="inline-flex items-center justify-center gap-2 px-4 h-11 text-sm rounded-xl text-white hover:opacity-90 shadow-lg shadow-acc/15 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer hover:shadow-xl" style={{ background: 'linear-gradient(to right, var(--color-acc) 0%, #e57373 100%)' }} onClick={()=>{ savePreferences(); setPrefOpen(false) }}>Save Preferences</button>
                 </div>
               </div>
             </div>
@@ -1563,11 +1477,11 @@ function App() {
             <DisclaimerContent />
           )}
         </div>
+        <Footer />
       </div>
-      <Footer />
       {showToast && (
         <div className="fixed bottom-5 right-5 z-[60]">
-          <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-[#1ce9b5] text-white shadow-lg shadow-[#1ce9b5]/20 border border-[#1ce9b5]">
+          <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-[#14b8a6] text-white shadow-lg shadow-[#14b8a6]/20 border border-[#14b8a6]">
             <CheckCircle className="w-4 h-4" />
             <span className="text-sm font-medium">{toastText}</span>
           </div>
