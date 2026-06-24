@@ -1,39 +1,36 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload, Settings, HelpCircle, AlertTriangle, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Upload, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
-export type SidebarView = 'upload' | 'help' | 'disclaimer'
+export type SidebarView = 'upload'
 
 interface NavItem {
-  id: SidebarView | 'preferences'
+  id: SidebarView
   label: string
   icon: typeof Upload
 }
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'upload', label: 'Upload', icon: Upload },
-  { id: 'preferences', label: 'Preferences', icon: Settings },
-  { id: 'help', label: 'Help', icon: HelpCircle },
-  { id: 'disclaimer', label: 'Disclaimer', icon: AlertTriangle },
 ]
 
 interface Props {
   activeView: SidebarView
-  onSelectView: (v: SidebarView) => void
-  onOpenPreferences: () => void
+  onSelectView: (view: SidebarView) => void
   isCollapsed: boolean
   onToggle: () => void
 }
 
-export default function Sidebar({ activeView, onSelectView, onOpenPreferences, isCollapsed, onToggle }: Props) {
+export default function Sidebar({
+  activeView,
+  onSelectView,
+  isCollapsed,
+  onToggle
+}: Props) {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
 
-  const handleClick = (id: NavItem['id']) => {
-    if (id === 'preferences') {
-      onOpenPreferences()
-    } else {
-      onSelectView(id)
-    }
+  const handleClick = (id: SidebarView) => {
+    onSelectView(id)
     setIsMobileOpen(false)
   }
 
@@ -55,25 +52,33 @@ export default function Sidebar({ activeView, onSelectView, onOpenPreferences, i
             </motion.div>
           )}
         </AnimatePresence>
+
         <button
           onClick={onToggle}
           className="p-1.5 rounded-lg text-tx3 hover:text-tx hover:bg-sub/60 transition-colors flex-shrink-0"
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+          {isCollapsed ? (
+            <ChevronRight size={16} />
+          ) : (
+            <ChevronLeft size={16} />
+          )}
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto py-4 px-2 space-y-0.5 scrollbar-thin">
         {NAV_ITEMS.map((item) => {
-          const isActive = item.id !== 'preferences' && item.id === activeView
+          const isActive = item.id === activeView
+
           return (
             <button
               key={item.id}
               onClick={() => handleClick(item.id)}
               title={isCollapsed ? item.label : undefined}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 relative group ${
-                isActive ? 'bg-acc/10 text-acc' : 'text-tx2 hover:bg-sub/70 hover:text-tx'
+                isActive
+                  ? 'bg-acc/10 text-acc'
+                  : 'text-tx2 hover:bg-sub/70 hover:text-tx'
               } ${isCollapsed ? 'justify-center' : ''}`}
             >
               {isActive && (
@@ -82,7 +87,16 @@ export default function Sidebar({ activeView, onSelectView, onOpenPreferences, i
                   className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-acc rounded-full"
                 />
               )}
-              <item.icon size={17} className={`flex-shrink-0 ${isActive ? 'text-acc' : 'text-tx3 group-hover:text-tx2'}`} />
+
+              <item.icon
+                size={17}
+                className={`flex-shrink-0 ${
+                  isActive
+                    ? 'text-acc'
+                    : 'text-tx3 group-hover:text-tx2'
+                }`}
+              />
+
               <AnimatePresence initial={false}>
                 {!isCollapsed && (
                   <motion.span
@@ -105,6 +119,7 @@ export default function Sidebar({ activeView, onSelectView, onOpenPreferences, i
 
   return (
     <>
+      {/* Mobile Menu Button */}
       <button
         onClick={() => setIsMobileOpen(true)}
         className="md:hidden fixed top-3.5 left-4 z-50 p-2 rounded-xl border border-border bg-surf shadow-soft"
@@ -112,6 +127,7 @@ export default function Sidebar({ activeView, onSelectView, onOpenPreferences, i
         <Menu size={18} />
       </button>
 
+      {/* Desktop Sidebar */}
       <motion.aside
         animate={{ width: isCollapsed ? 64 : 224 }}
         transition={{ duration: 0.22, ease: 'easeInOut' }}
@@ -120,6 +136,7 @@ export default function Sidebar({ activeView, onSelectView, onOpenPreferences, i
         <SidebarContent />
       </motion.aside>
 
+      {/* Mobile Sidebar */}
       <AnimatePresence>
         {isMobileOpen && (
           <>
@@ -130,6 +147,7 @@ export default function Sidebar({ activeView, onSelectView, onOpenPreferences, i
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileOpen(false)}
             />
+
             <motion.aside
               className="md:hidden fixed left-0 top-0 bottom-0 w-64 bg-surf border-r border-border z-50"
               initial={{ x: -280 }}
@@ -138,11 +156,18 @@ export default function Sidebar({ activeView, onSelectView, onOpenPreferences, i
               transition={{ duration: 0.22 }}
             >
               <div className="h-14 border-b border-border flex items-center justify-between px-4">
-                <span className="font-serif font-semibold text-acc">GST Reconciler</span>
-                <button onClick={() => setIsMobileOpen(false)} className="p-1.5 rounded-lg hover:bg-sub/60">
+                <span className="font-serif font-semibold text-acc">
+                  GST Reconciler
+                </span>
+
+                <button
+                  onClick={() => setIsMobileOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-sub/60"
+                >
                   <X size={18} />
                 </button>
               </div>
+
               <SidebarContent />
             </motion.aside>
           </>

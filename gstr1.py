@@ -12,6 +12,18 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def clean_text(text):
+    """Remove watermark letter artifacts embedded in GSTR-1 PDFs.
+    The FINAL watermark letters (L, A, N, I, F) appear as standalone
+    characters on their own lines OR embedded before digits e.g. 'I0', 'F2'.
+    Strip both forms before running any regex patterns.
+    """
+    # Remove standalone watermark lines (single uppercase letter alone on a line)
+    text = re.sub(r'(?m)^[LANIF]\s*$', '', text)
+    # Remove watermark letters embedded before digits e.g. 'I0' -> '0', 'F2' -> '2'
+    text = re.sub(r'\b[LANIF](\d)', r'\1', text)
+    return text
+
 def safe_float(value):
     """Safely convert value to float with error handling."""
     try:
@@ -100,6 +112,8 @@ def extract_gstr1_data(pdf_path):
         # Clean up repeated lines like IP Address and FINAL
         text = re.sub(r'IP Address:.*\n', '', text)
         text = re.sub(r'FINAL\n', '', text)
+        # Remove watermark letter artifacts (L, A, N, I, F from FINAL watermark)
+        text = clean_text(text)
         
         # Extract header fields with enhanced patterns
         data['FileName'] = os.path.basename(pdf_path)
@@ -233,15 +247,26 @@ def extract_gstr1_data(pdf_path):
         data.update(summary_stats)
         
         # Validate extracted data
+        # Validate extracted data
         validation_results = validate_extracted_data(data)
         data.update(validation_results)
-        
+
+        # Add defaults for missing values (important for PDF alignment)
+        for key, value in data.items():
+            if value is None:             
+                data[key] = ""
+
+        # Ensure required fields always exist
+        data.setdefault('processing_status', 'SUCCESS')
+        data.setdefault('parsing_error', "")
+
         logger.info(f"Successfully extracted data from {pdf_path}")
         logger.info(f"Total fields extracted: {len(data)}")
         
     except Exception as e:
         logger.error(f"Error processing {pdf_path}: {str(e)}")
         logger.error(traceback.format_exc())
+        data['processing_status'] = 'FAILED'
         data['parsing_error'] = str(e)
         data['FileName'] = os.path.basename(pdf_path)
         
@@ -796,7 +821,8 @@ def extract_table_12_values(text):
     data = {}
     
     # Total
-    total_match = re.search(r'12 - HSN-wise summary.*\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    total_match = re.search(
+    r'12 - HSN-wise summary of outward supplies\s*\nTotal\s+\d+\s+NA\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.IGNORECASE)
     if total_match:
         data['12_Value'] = total_match.group(1).strip()
         data['12_IGST'] = total_match.group(2).strip()
@@ -813,24 +839,13 @@ def extract_table_12_values(text):
     return data
 
 def extract_table_13_values(text):
-    """Extract Table 13 - Documents issued during the tax period."""
     data = {}
-    
-    # Total
-    total_match = re.search(r'13 - Documents issued during the tax period.*\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
-    if total_match:
-        data['13_Value'] = total_match.group(1).strip()
-        data['13_IGST'] = total_match.group(2).strip()
-        data['13_CGST'] = total_match.group(3).strip()
-        data['13_SGST'] = total_match.group(4).strip()
-        data['13_Cess'] = total_match.group(5).strip()
+    match = re.search(r'13 - Documents issued.*?Net issued documents\s+(\d+)', text, re.DOTALL)
+    if match:
+        data['13_DocumentsIssued'] = match.group(1).strip()
     else:
-        data['13_Value'] = ""
-        data['13_IGST'] = ""
-        data['13_CGST'] = ""
-        data['13_SGST'] = ""
-        data['13_Cess'] = ""
-    
+        data['13_DocumentsIssued'] = ""
+    # Table 13 only has a document count, no tax amount columns
     return data
 
 def extract_table_14_values(text):
@@ -838,12 +853,17 @@ def extract_table_14_values(text):
     data = {}
     
     # Total
-    total_match = re.search(r'14 - Supplies made through E-Commerce Operators.*\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    total_match = re.search(
+    r'14 - Supplies made through E-Commerce Operators\s*\nTotal\s+\d+\s+Net Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
+    text, re.DOTALL | re.IGNORECASE)
+    
     if total_match:
         data['14_Value'] = total_match.group(1).strip()
-        data['14_CGST'] = total_match.group(2).strip()
-        data['14_SGST'] = total_match.group(3).strip()
-        data['14_Cess'] = total_match.group(4).strip()
+        data['14_IGST']  = total_match.group(2).strip()  
+        data['14_CGST']  = total_match.group(3).strip()
+        data['14_SGST']  = total_match.group(4).strip()
+        data['14_Cess']  = total_match.group(5).strip()
+        
     else:
         data['14_Value'] = ""
         data['14_CGST'] = ""
@@ -883,7 +903,8 @@ def extract_table_14a_values(text):
     data = {}
     
     # Total
-    total_match = re.search(r'14A - Amended Supplies made through E-Commerce Operators.*\nAmended amount - Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    total_match = re.search(
+    r'14A - Amended Supplies.*?Amended amount\s*[–-]\s*Total\s+\d+\s+Net Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL | re.IGNORECASE)
     if total_match:
         data['14A_Value'] = total_match.group(1).strip()
         data['14A_CGST'] = total_match.group(2).strip()
@@ -1202,7 +1223,7 @@ def extract_summary_values(text):
         r'Summary\s*\(Page\s*2\s*Total\)\s*([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
         r'Summary.*?Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
         r'Page\s*2\s*Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'Total Liability\s*\(Outward supplies[^)]+\)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
     ]
     
     for pattern in summary_patterns:
@@ -1316,99 +1337,102 @@ def calculate_summary_statistics(data):
         summary_stats['Total_Cess'] = 0
     
     return summary_stats
-
 def validate_extracted_data(data):
     """Perform comprehensive validation on extracted data."""
-    validation_results = {}
-    
-    # Required fields validation
-    required_fields = [
-        'GSTIN', 'LegalName', 'ARN', 'ARNDate', 'TaxPeriod', 
-        'FinancialYear', 'VerificationDate', 'AuthorizedSignatory', 'Designation'
-    ]
-    
-    for field in required_fields:
-        if not data.get(field):
-            validation_results[f'{field}_missing'] = True
-            validation_results[f'{field}_validation'] = 'FAILED'
+    try:
+        validation_results = {}
+
+        # Required fields validation
+        required_fields = [
+            'GSTIN', 'LegalName', 'ARN', 'ARNDate', 'TaxPeriod',
+            'FinancialYear', 'VerificationDate', 'AuthorizedSignatory', 'Designation'
+        ]
+        for field in required_fields:
+            if not data.get(field):
+                validation_results[f'{field}_missing'] = True
+                validation_results[f'{field}_validation'] = 'FAILED'
+            else:
+                validation_results[f'{field}_missing'] = False
+                validation_results[f'{field}_validation'] = 'PASSED'
+
+        # GSTIN format validation
+        gstin = data.get('GSTIN', '')
+        if gstin and len(gstin) == 15 and gstin.isalnum():
+            validation_results['GSTIN_format'] = 'VALID'
         else:
-            validation_results[f'{field}_missing'] = False
-            validation_results[f'{field}_validation'] = 'PASSED'
-    
-    # GSTIN format validation
-    gstin = data.get('GSTIN', '')
-    if gstin and len(gstin) == 15 and gstin.isalnum():
-        validation_results['GSTIN_format'] = 'VALID'
-    else:
-        validation_results['GSTIN_format'] = 'INVALID'
-    
-    # ARN format validation
-    arn = data.get('ARN', '')
-    if arn and arn.isalnum():
-        validation_results['ARN_format'] = 'VALID'
-    else:
-        validation_results['ARN_format'] = 'INVALID'
-    
-    # Date format validation
-    date_fields = ['ARNDate', 'VerificationDate']
-    for field in date_fields:
-        date_value = data.get(field, '')
-        if date_value and re.match(r'\d{2}/\d{2}/\d{4}', date_value):
-            validation_results[f'{field}_format'] = 'VALID'
+            validation_results['GSTIN_format'] = 'INVALID'
+
+        # ARN format validation
+        arn = data.get('ARN', '')
+        if arn and arn.isalnum():
+            validation_results['ARN_format'] = 'VALID'
         else:
-            validation_results[f'{field}_format'] = 'INVALID'
-    
-    # Tax period validation
-    tax_period = data.get('TaxPeriod', '')
-    if tax_period and re.match(r'[A-Za-z]+', tax_period):
-        validation_results['TaxPeriod_format'] = 'VALID'
-    else:
-        validation_results['TaxPeriod_format'] = 'INVALID'
-    
-    # Financial year validation
-    fy = data.get('FinancialYear', '')
-    if fy and re.match(r'\d{4}-\d{2}', fy):
-        validation_results['FinancialYear_format'] = 'VALID'
-    else:
-        validation_results['FinancialYear_format'] = 'INVALID'
-    
-    # Summary validation
-    summary_value = safe_float(data.get('Summary_Value', 0))
-    calculated_total = safe_float(data.get('Total_Taxable_Supplies', 0))
-    
-    if summary_value > 0 and calculated_total > 0:
-        difference = abs(summary_value - calculated_total)
-        if difference < 100:  # Allow small difference due to rounding
-            validation_results['Summary_consistency'] = 'PASSED'
+            validation_results['ARN_format'] = 'INVALID'
+
+        # Date format validation
+        date_fields = ['ARNDate', 'VerificationDate']
+        for field in date_fields:
+            date_value = data.get(field, '')
+            if date_value and re.match(r'\d{2}/\d{2}/\d{4}', date_value):
+                validation_results[f'{field}_format'] = 'VALID'
+            else:
+                validation_results[f'{field}_format'] = 'INVALID'
+
+        # Tax period validation
+        tax_period = data.get('TaxPeriod', '')
+        if tax_period and re.match(r'[A-Za-z]+', tax_period):
+            validation_results['TaxPeriod_format'] = 'VALID'
         else:
-            validation_results['Summary_consistency'] = 'FAILED'
-            validation_results['Summary_difference'] = difference
-    else:
-        validation_results['Summary_consistency'] = 'NOT_AVAILABLE'
-    
-    # Overall validation score
-    passed_validations = sum(1 for v in validation_results.values() if v == 'PASSED' or v == 'VALID')
-    total_validations = len([v for v in validation_results.values() if isinstance(v, str) and v in ['PASSED', 'FAILED', 'VALID', 'INVALID']])
-    
-    if total_validations > 0:
-        validation_score = (passed_validations / total_validations) * 100
-        validation_results['Overall_Validation_Score'] = round(validation_score, 2)
-        
-        if validation_score >= 80:
-            validation_results['Overall_Status'] = 'EXCELLENT'
-        elif validation_score >= 60:
-            validation_results['Overall_Status'] = 'GOOD'
-        elif validation_score >= 40:
-            validation_results['Overall_Status'] = 'FAIR'
+            validation_results['TaxPeriod_format'] = 'INVALID'
+
+        # Financial year validation
+        fy = data.get('FinancialYear', '')
+        if fy and re.match(r'\d{4}-\d{2}', fy):
+            validation_results['FinancialYear_format'] = 'VALID'
         else:
-            validation_results['Overall_Status'] = 'POOR'
-    else:
-        validation_results['Overall_Validation_Score'] = 0
-        validation_results['Overall_Status'] = 'NOT_AVAILABLE'
-    
-    logger.info(f"Validation completed. Overall score: {validation_results.get('Overall_Validation_Score', 0)}%")
-    
-    return validation_results
+            validation_results['FinancialYear_format'] = 'INVALID'
+
+        # Summary validation
+        summary_value = safe_float(data.get('Summary_Value', 0))
+        calculated_total = safe_float(data.get('Total_Taxable_Supplies', 0))
+        if summary_value > 0 and calculated_total > 0:
+            difference = abs(summary_value - calculated_total)
+            if difference < 100:
+                validation_results['Summary_consistency'] = 'PASSED'
+            else:
+                validation_results['Summary_consistency'] = 'FAILED'
+                validation_results['Summary_difference'] = difference
+        else:
+            validation_results['Summary_consistency'] = 'NOT_AVAILABLE'
+
+        # Overall validation score
+        passed_validations = sum(1 for v in validation_results.values() if v in ('PASSED', 'VALID'))
+        total_validations = len([v for v in validation_results.values() if isinstance(v, str) and v in ('PASSED', 'FAILED', 'VALID', 'INVALID')])
+        if total_validations > 0:
+            validation_score = (passed_validations / total_validations) * 100
+            validation_results['Overall_Validation_Score'] = round(validation_score, 2)
+            if validation_score >= 80:
+                validation_results['Overall_Status'] = 'EXCELLENT'
+            elif validation_score >= 60:
+                validation_results['Overall_Status'] = 'GOOD'
+            elif validation_score >= 40:
+                validation_results['Overall_Status'] = 'FAIR'
+            else:
+                validation_results['Overall_Status'] = 'POOR'
+        else:
+            validation_results['Overall_Validation_Score'] = 0
+            validation_results['Overall_Status'] = 'NOT_AVAILABLE'
+
+        logger.info(f"Validation completed. Overall score: {validation_results.get('Overall_Validation_Score', 0)}%")
+        return validation_results
+
+    except Exception as e:
+        logger.error(f"Validation error: {str(e)}")
+        return {
+            'Overall_Validation_Score': 0,
+            'Overall_Status': 'VALIDATION_ERROR',
+            '_validation_error': str(e)
+        }
 
 def process_directory(directory_path, output_file):
     """Process all PDF files in a directory and generate comprehensive output."""
@@ -1453,9 +1477,11 @@ def process_directory(directory_path, output_file):
                 df.to_excel(writer, sheet_name='GSTR1_Data', index=False)
                 
                 # Summary statistics sheet
-                summary_df = df[['FileName', 'GSTIN', 'LegalName', 'TaxPeriod', 'FinancialYear', 
-                               'Total_Taxable_Supplies', 'Total_IGST', 'Total_CGST', 'Total_SGST', 
-                               'Total_Cess', 'Overall_Validation_Score', 'Overall_Status']].copy()
+                summary_columns = ['FileName','GSTIN','LegalName','TradeName','ARN','TaxPeriod','FinancialYear','Summary_Value','Summary_IGST','Summary_CGST','Summary_SGST','Summary_Cess','Total_B2B_Value','Total_Export_Value','Total_B2C_Value','Total_Taxable_Supplies','Total_IGST','Total_CGST','Total_SGST','Total_Cess','Overall_Validation_Score','Overall_Status','processing_status']
+
+                available = [c for c in summary_columns if c in df.columns]
+
+                summary_df = df[available].copy()
                 summary_df.to_excel(writer, sheet_name='Summary_Statistics', index=False)
                 
                 # Validation results sheet

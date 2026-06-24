@@ -15,7 +15,9 @@ from collections import OrderedDict, defaultdict
 from gstr3b import parse_gstr3b, create_excel
 from gstr1 import extract_gstr1_data
 from json_import import extract_gstr1_from_json, extract_gstr3b_from_json
-
+from backend.core.reconciliation import reconcile
+from backend.core.extractors.purchase_register import extract_purchase_register
+from backend.core.extractors.gstr2b import extract_2b
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -47,8 +49,48 @@ app.add_middleware(
 @app.get("/api/health")
 def health():
     return {"status": "ok", "time": datetime.datetime.utcnow().isoformat()}
+@app.post("/api/reconcile")
+async def reconcile_endpoint(payload: dict):
+    # Validate required keys exist before doing anything
+    source = payload.get("source")
+    target_raw = payload.get("target_2a")
+    pr_raw = payload.get("target_pr")  # optional — purchase register records (pre-parsed)
 
-# Favicon fallback for browsers that request /favicon.ico
+    if not source:
+        return JSONResponse(status_code=400, content={"error": "Missing 'source' records."})
+    if not target_raw and not pr_raw:
+        return JSONResponse(status_code=400, content={"error": "Missing target — provide 'target_2a' or 'target_pr'."})
+
+    try:
+        if target_raw:
+            target = extract_2b(target_raw)
+        else:
+            target = pr_raw  # already normalized InvoiceRecord list from /api/purchase_register
+        return reconcile(source, target)
+    except KeyError as e:
+        return JSONResponse(status_code=400, content={"error": f"Missing field in payload: {e}"})
+    except Exception as e:
+        logger.error("Reconcile failed: %s", e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "Reconciliation failed. Check server logs."})
+
+
+@app.post("/api/purchase_register")
+async def parse_purchase_register(file: UploadFile = File(...)):
+    """
+    Upload an Excel or CSV purchase register.
+    Returns a list of normalized InvoiceRecord dicts.
+    The frontend passes this list back in the /api/reconcile payload as 'target_pr'.
+    """
+    try:
+        content = await file.read()
+        records = extract_purchase_register(content, file.filename or "upload")
+        return {"records": records, "count": len(records)}
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"error": str(e)})
+    except Exception as e:
+        logger.error("Purchase register parse failed: %s", e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "Could not parse file."})
+
 @app.get("/favicon.ico")
 def favicon():
     png_path = os.path.join(DIST_DIR, "icon-2024.png")
@@ -128,6 +170,25 @@ async def parse_gstr3b_json(payload: dict):
         return JSONResponse(content=to_jsonable(data))
     except Exception as e:
         logger.exception("Failed to parse GSTR-3B JSON")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.post("/api/gstr2b/json")
+async def parse_gstr2b_json(payload: dict):
+    """
+    Parse a GSTR-2B JSON file downloaded from the GSTN portal.
+    Returns a list of normalized InvoiceRecord dicts with source='2B'.
+    These can be passed directly to /api/reconcile as 'target_2a' payload
+    (the reconciliation engine handles both 2A and 2B records the same way).
+    """
+    try:
+        records = extract_2b(payload)
+        return JSONResponse(content=to_jsonable({
+            "records": records,
+            "count": len(records),
+            "source": "2B"
+        }))
+    except Exception as e:
+        logger.exception("Failed to parse GSTR-2B JSON")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
