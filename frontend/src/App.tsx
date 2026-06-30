@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import Footer from './components/Footer'
 import AppHeader from './components/Header'
+import ReconciliationPage from './components/ReconciliationPage'
 import AppSidebar from './components/Sidebar'
 import { Download, CheckCircle, ChevronDown, BarChart3, Filter, X, Check, ArrowUpDown, ChevronsDown, ChevronsUp, Upload } from 'lucide-react'
-
 type ParseResult = Record<string, any> & { filename?: string, __error__?: string }
 
 // Environment-based API base URL: prefers VITE_API_BASE, otherwise infer dev vs prod
@@ -25,7 +25,6 @@ function UploadCard({ onProcess, onFilesSelected, progressDone = 0, progressTota
   const [files, setFiles] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement|null>(null)
-
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
@@ -47,7 +46,6 @@ function UploadCard({ onProcess, onFilesSelected, progressDone = 0, progressTota
   const safeDone = Math.min(progressDone, progressTotal)
   const pct = progressTotal ? Math.min(100, Math.round((safeDone / progressTotal) * 100)) : 0
   const showProgress = progressTotal > 0 && progressDone < progressTotal
-
   return (
     <div
       onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
@@ -498,7 +496,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     known.sort((a, b) => (a.m! - b.m!) || (a.idx - b.idx))
     return [...known.map(k=>k.idx), ...unknown.map(u=>u.idx)]
   }
-
   const numberFmt = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 })
   const fmt = (v: any) => {
     if (v == null) return ''
@@ -883,14 +880,13 @@ function App() {
     } catch {}
     return false
   })
-  const [activeView, setActiveView] = useState<'upload'>('upload')
+  const [activeView, setActiveView] = useState<'upload' | 'reconciliation'>('upload')
   const [prefOpen, setPrefOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<ParseResult[]>([])
   const [progress, setProgress] = useState<{done:number,total:number}>({done:0,total:0})
   const [includeFailedInExcel] = useState(true)
   const [lastReturnType, setLastReturnType] = useState<'GSTR-1'|'GSTR-3B'|'GSTR-2B'>('GSTR-3B')
-
   const [selectedTables, setSelectedTables] = useState<{['GSTR-1']: string[], ['GSTR-3B']: string[]}>({ 'GSTR-1': [], 'GSTR-3B': [] })
   const [schemaStructure, setSchemaStructure] = useState<{['GSTR-1']: Array<{ heading: string, categories: Array<{ name: string, subcategories?: string[] }> }>, ['GSTR-3B']: Array<{ heading: string, categories: Array<{ name: string, subcategories?: string[] }> }>}>({ 'GSTR-1': [], 'GSTR-3B': [] })
   const [activeSettingsTab, setActiveSettingsTab] = useState<'GSTR-1'|'GSTR-3B'>('GSTR-1')
@@ -903,6 +899,7 @@ function App() {
   const prevFocusedElRef = useRef<HTMLElement|null>(null)
   const abortControllerRef = useRef<AbortController|null>(null)
   const processIdRef = useRef(0)
+  
 
   // Lock page scroll when Preferences modal is open
   useEffect(() => {
@@ -1068,7 +1065,7 @@ function App() {
     setDraftSelectedTables(selectedTables)
   }
 
-  // Auto-detect return type and format per file, then process
+    // Auto-detect return type and format per file, then process
   const onProcess = async (files: File[]) => {
     if (!files.length) {
       setToastText('Select returns to extract')
@@ -1076,28 +1073,29 @@ function App() {
       setTimeout(() => setShowToast(false), 1600)
       return
     }
+
     const myId = ++processIdRef.current
     try { abortControllerRef.current?.abort() } catch {}
     abortControllerRef.current = new AbortController()
     const signal = abortControllerRef.current.signal
 
     setLoading(true)
+    setResults([])
     setProgress({ done: 0, total: files.length })
     let dominantSet = false
-    
+
     try {
-    
-      // Collect all results first, then set them atomically
       const allResults: ParseResult[] = []
       const tasks = files.map(async (file) => {
-        try {
-          const { returnType, fileFormat } = await detectReturnTypeAndFormat(file)
-          if (!dominantSet) {
-            dominantSet = true
-            setLastReturnType(returnType)
-          }
-          let res: Response
-          if (fileFormat === 'PDF') {
+  try {
+    const { returnType, fileFormat } = await detectReturnTypeAndFormat(file)
+    if (!dominantSet) {
+      dominantSet = true
+      setLastReturnType(returnType)
+    }
+
+    let res: Response
+    if (fileFormat === 'PDF') {
             const form = new FormData()
             form.append('file', file)
             const url = returnType === 'GSTR-1'
@@ -1109,12 +1107,13 @@ function App() {
             let payload: any
             try { payload = JSON.parse(text) } catch { throw new Error('Invalid JSON file') }
             const url = returnType === 'GSTR-1'
-                ? `${API_BASE}/api/gstr1/json`
+              ? `${API_BASE}/api/gstr1/json`
               : returnType === 'GSTR-2B'
               ? `${API_BASE}/api/gstr2b/json`
               : `${API_BASE}/api/gstr3b/json`
             res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal })
           }
+
           const data = await res.json()
           allResults.push({ ...data, filename: file.name })
         } catch (err: any) {
@@ -1125,13 +1124,13 @@ function App() {
           }
         }
       })
+
       await Promise.all(tasks)
-      // Set all results atomically after all fetches complete
+
       if (processIdRef.current === myId) {
         setResults(allResults)
         setRefreshNonce(n => n + 1)
       }
-      
     } catch (e) {
       console.error(e)
     } finally {
@@ -1162,65 +1161,75 @@ function App() {
   return (
     <div className="min-h-screen flex font-inter text-tx bg-bg">
       <AppSidebar
-        activeView={activeView}                    // Simplified - no need for the comparison
+        activeView={activeView}
         onSelectView={setActiveView}
         isCollapsed={!sidebarOpen}
-       onToggle={() => setSidebarOpen(!sidebarOpen)}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
       />
       <div className="flex-1 min-w-0 flex flex-col">
         <AppHeader theme={theme} onToggleTheme={toggleTheme} statusLabel={results.length ? `${results.length} file(s) processed` : null} />
         <div className="flex-1 space-y-4 sm:space-y-6 py-4 sm:py-6">
           {activeView === 'upload' && (
-            <>
-              <UploadCard
-                onProcess={onProcess}
-                onFilesSelected={() => {
-                  try { abortControllerRef.current?.abort() } catch {}
-                  abortControllerRef.current = null
-                  processIdRef.current++
-                  setResults([])
-                  setProgress({ done: 0, total: 0 })
-                  setLoading(false)
-                }}
-                progressDone={progress.done}
-                progressTotal={progress.total}
-              />
-              <div className="space-y-3">
-                <div className="mx-6 bg-white rounded-2xl shadow-soft border border-neutral-200 px-6 py-4 dark:bg-neutral-800 dark:border-neutral-700">
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-between gap-2 sm:gap-0 max-w-full overflow-hidden">
-                    <div className="text-sm font-semibold text-tx">Raw Data Export</div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <div className="relative group">
-                        <button
-                          onClick={downloadExcel}
-                          aria-label="Download raw data"
-                          disabled={!(progress.total > 0 && progress.done >= progress.total)}
-                          aria-disabled={!(progress.total > 0 && progress.done >= progress.total)}
-                          className="inline-flex items-center justify-center p-2 rounded-lg text-[#0ea5a3] hover:text-[#0ea5a3]/80 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0ea5a3] disabled:opacity-60 disabled:cursor-not-allowed w-auto cursor-pointer"
-                        >
-                          <Download className="w-5 h-5" strokeWidth={2.5} />
-                        </button>
-                        <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-40">
-                          Download the extracted returns as a single table
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+  <>
+    <UploadCard
+      onProcess={onProcess}
+      onFilesSelected={() => {
+        try { abortControllerRef.current?.abort() } catch {}
+        abortControllerRef.current = null
+        processIdRef.current++
+        setResults([])
+        setProgress({ done: 0, total: 0 })
+        setLoading(false)
+      }}
+      progressDone={progress.done}
+      progressTotal={progress.total}
+    />
+    <div className="space-y-3">
+      <div className="mx-6 bg-white rounded-2xl shadow-soft border border-neutral-200 px-6 py-4 dark:bg-neutral-800 dark:border-neutral-700">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-between gap-2 sm:gap-0 max-w-full overflow-hidden">
+          <div className="text-sm font-semibold text-tx">Raw Data Export</div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative group">
+              <button
+                onClick={downloadExcel}
+                aria-label="Download raw data"
+                disabled={!(progress.total > 0 && progress.done >= progress.total)}
+                className="inline-flex items-center justify-center p-2 rounded-lg text-[#0ea5a3] hover:text-[#0ea5a3]/80 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0ea5a3] disabled:opacity-60 disabled:cursor-not-allowed w-auto cursor-pointer"
+              >
+                <Download className="w-5 h-5" strokeWidth={2.5} />
+              </button>
+              <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-40">
+                Download the extracted returns as a single table
               </div>
-              <div className="mx-6">
-                <ResultsTabs
-                  results={results}
-                  includeFailedInExcel={includeFailedInExcel}
-                  returnType={lastReturnType === 'GSTR-2B' ? 'GSTR-3B' : lastReturnType}
-                  selectedCategories={selectedTables[lastReturnType as 'GSTR-1'|'GSTR-3B'] ?? []}
-                  loading={loading}
-                  refreshNonce={refreshNonce}
-                  prefOpen={prefOpen}
-                />
-              </div>
-            </>
-          )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="mx-6 flex justify-end">
+      <button
+        onClick={() => setPrefOpen(true)}
+        className="inline-flex items-center gap-2 px-4 h-9 rounded-xl border border-border bg-surf text-tx text-xs font-semibold hover:bg-sub transition cursor-pointer"
+      >
+        <ChevronsDown className="w-4 h-4" /> Preferences
+      </button>
+    </div>
+    <div className="mx-6">
+      <ResultsTabs
+        results={results}
+        includeFailedInExcel={includeFailedInExcel}
+        returnType={lastReturnType === 'GSTR-2B' ? 'GSTR-3B' : lastReturnType}
+        selectedCategories={selectedTables[lastReturnType === 'GSTR-2B' ? 'GSTR-3B' : lastReturnType] ?? []}
+        loading={loading}
+        refreshNonce={refreshNonce}
+        prefOpen={prefOpen}
+      />
+    </div>
+  </>
+)}
+
+        {activeView === 'reconciliation' && <ReconciliationPage />}
+{/* RECONCILIATION VIEW */}
 
           {/* Preferences Floating Modal */}
           {prefOpen && (
