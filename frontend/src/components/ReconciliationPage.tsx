@@ -570,8 +570,8 @@ const downloadG3bBooksExcel = async () => {
       )}
 
       {/* ── Sub-navigation tabs ───────────────────────────────────────────── */}
-      <div className="mx-6">
-        <div className="flex items-center gap-1 p-1 bg-sub rounded-xl w-fit">
+      <div className="mx-6 flex justify-center">
+  <div className="flex items-center gap-1 p-1 bg-sub rounded-xl w-fit">
           {TABS.map(tab => (
             <button
               key={tab.id}

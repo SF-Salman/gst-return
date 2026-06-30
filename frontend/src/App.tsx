@@ -3,7 +3,7 @@ import Footer from './components/Footer'
 import AppHeader from './components/Header'
 import ReconciliationPage from './components/ReconciliationPage'
 import AppSidebar from './components/Sidebar'
-import { Download, CheckCircle, ChevronDown, BarChart3, Filter, X, Check, ArrowUpDown, ChevronsDown, ChevronsUp, Upload } from 'lucide-react'
+import { Building2, Download, CheckCircle, ChevronDown, BarChart3, Filter, X, Check, ArrowUpDown, ChevronsDown, ChevronsUp, Upload } from 'lucide-react'
 type ParseResult = Record<string, any> & { filename?: string, __error__?: string }
 
 // Environment-based API base URL: prefers VITE_API_BASE, otherwise infer dev vs prod
@@ -397,7 +397,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
       <div className="min-w-[48rem] text-xs rounded-2xl shadow-sm bg-surf">
         <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: rowsExceedLimit ? maxHeightPx : undefined }}>
         {label ? (
-          <div className="sticky top-0 z-10 px-6 py-1 border-b border-border bg-sub/80 backdrop-blur-md text-sm font-semibold text-tx flex items-center justify-between">
+          <div className="sticky top-0 left-0 z-10 px-6 py-1 border-b border-border bg-sub text-sm font-semibold text-tx flex items-center justify-between">
             <span className="truncate" title={label}>{label}</span>
             <div className="flex items-center gap-2">
               <div className={`relative group ${prefOpen ? 'hidden' : ''}`}>
@@ -429,14 +429,14 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
         ) : null}
         {!isCollapsed && (
         <Table className="min-w-full w-full">
-          <TableHeader className="sticky top-[2rem] z-10 border-b dark:border-neutral-700 bg-surf/95 backdrop-blur-md">
+          <TableHeader className="sticky top-[2rem] z-10 border-b dark:border-neutral-700 bg-surf">
             <TableRow>
-              <TableHead className="sticky top-[2rem] left-0 z-10 px-1 py-[2px] text-sm font-semibold bg-surf/95 backdrop-blur-md">Period</TableHead>
+              <TableHead className="sticky top-[2rem] left-0 z-10 px-1 py-[2px] text-sm font-semibold bg-surf">Period</TableHead>
               {tableRows.map((row, ri) => (
                 <TableHead
                   key={ri}
                   onClick={() => { setSortRowIdx(prev => prev === ri ? null : ri); setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc')) }}
-                  className="sticky top-[2rem] z-[5] px-1 py-[2px] text-sm font-semibold bg-surf/95 backdrop-blur-md cursor-pointer select-none text-right"
+                  className="sticky top-[2rem] z-[5] px-1 py-[2px] text-sm font-semibold bg-surf cursor-pointer select-none text-right"
                   title="Click to sort columns by this row"
                 >
                   <span className="inline-flex items-center gap-1 justify-end w-full">
@@ -1168,6 +1168,19 @@ function App() {
       />
       <div className="flex-1 min-w-0 flex flex-col">
         <AppHeader theme={theme} onToggleTheme={toggleTheme} statusLabel={results.length ? `${results.length} file(s) processed` : null} />
+        <div className="h-11 flex items-center justify-between px-4 sm:px-6 bg-sub border-b border-border">
+  <div className="flex items-center gap-2 text-tx3">
+    <Building2 size={14} className="text-acc" />
+    <span className="font-mono text-[11px] uppercase tracking-[0.15em]">Engagement</span>
+  </div>
+  <button
+    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-surf text-xs font-medium text-tx3 hover:text-tx hover:border-acc/50 transition-all duration-200 cursor-pointer"
+  >
+    <Building2 size={14} className="text-acc" />
+    Pick engagement...
+    <ChevronDown size={14} />
+  </button>
+</div>
         <div className="flex-1 space-y-4 sm:space-y-6 py-4 sm:py-6">
           {activeView === 'upload' && (
   <>

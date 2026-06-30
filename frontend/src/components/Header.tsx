@@ -12,10 +12,7 @@ export default function Header({ theme, onToggleTheme, statusLabel }: Props) {
 
   return (
     <header className="h-16 flex items-center justify-between px-4 sm:px-6 bg-surf border-b border-border sticky top-0 z-40">
-      <div className="flex items-center gap-2 text-tx3">
-        <FileSpreadsheet size={16} className="text-acc" />
-        <span className="hidden sm:inline font-mono text-[11px] uppercase tracking-[0.15em]">GST Suite</span>
-      </div>
+      <div>  </div>
 
       <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center select-none">
         <span className="leading-none text-tx font-serif font-semibold text-[1.35rem]">
