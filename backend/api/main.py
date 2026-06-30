@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse, StreamingResponse, FileResponse, Res
 from fastapi.staticfiles import StaticFiles
 from backend.core.gstr3b_books import reconcile_gstr3b_vs_books, generate_gstr3b_books_excel
 from backend.core.books_extractor import extract_books
+from backend.core.gstr2b_extractor import extract_gstr2b, merge_gstr2b_files
+from backend.core.gstr2b_vs_books import reconcile_gstr2b_vs_books, generate_gstr2b_books_excel
 import tempfile
 import os
 import io
@@ -691,7 +693,20 @@ async def reconcile_gstr1_gstr3b_excel(payload: dict):
         if tmp_path:
             try: os.unlink(tmp_path)
             except: pass
-        
+@app.get("/api/reconcile/gstr3b-books/template")
+async def download_books_template():
+    """Download the Books data Excel template for GSTR-3B vs Books reconciliation."""
+    try:
+        from backend.core.books_extractor import generate_books_template
+        content = generate_books_template()
+        return Response(
+            content=content,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=BOOKS_DATA_Template.xlsx"}
+        )
+    except Exception as e:
+        logger.exception("Failed to generate Books template")
+        return JSONResponse(status_code=500, content={"error": str(e)})       
         
 @app.post("/api/reconcile/gstr3b-books")
 async def reconcile_gstr3b_books(
@@ -711,7 +726,10 @@ async def reconcile_gstr3b_books(
 
     # Extract Books file
     books_bytes = await books_file.read()
-    books_data  = extract_books(books_bytes, books_file.filename)
+    try:
+        books_data = extract_books(books_bytes, books_file.filename)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"error": str(e)})
 
     # Optional GSTIN cross-check
     gstin_warning = None
@@ -724,6 +742,7 @@ async def reconcile_gstr3b_books(
     result['gstin_3b']    = g3b_gstin
     result['gstin_books'] = books_gstin
     result['months_detected'] = len(result.get('monthly', []))
+    result['g3b_extracted'] = to_jsonable(g3b_records) 
     return JSONResponse(content=to_jsonable(result))
 
 
@@ -755,7 +774,104 @@ async def reconcile_gstr3b_books_excel(payload: dict):
     except Exception as e:
         logger.exception("Failed to generate GSTR-3B vs Books Excel")
         return JSONResponse(status_code=500, content={"error": str(e)})
-    
+
+
+# ─── GSTR-2B vs Books ────────────────────────────────────────────────────────
+# Reuses the same Books template/extractor as GSTR-3B vs Books (extract_books),
+# and the same upload/extract/reconcile/report API shape — see that section
+# above for the pattern this mirrors.
+
+@app.get("/api/reconcile/gstr2b-books/template")
+async def download_gstr2b_books_template():
+    """Download the Books data Excel template — identical format used by
+    GSTR-3B vs Books, since both reconciliations consume the same Books upload."""
+    try:
+        from backend.core.books_extractor import generate_books_template
+        content = generate_books_template()
+        return Response(
+            content=content,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=BOOKS_DATA_Template.xlsx"}
+        )
+    except Exception as e:
+        logger.exception("Failed to generate Books template")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.post("/api/reconcile/gstr2b-books")
+async def reconcile_gstr2b_books(
+    gstr2b_files: List[UploadFile] = File(...),
+    books_file:   UploadFile       = File(...),
+):
+    """
+    Accept 1–12 GSTR-2B Excel files (one file = one month, per portal convention)
+    + one Books Excel/CSV. Returns reconciliation result dict.
+    """
+    gstr2b_extracted = []
+    for f in gstr2b_files:
+        content = await f.read()
+        try:
+            ext = extract_gstr2b(content, f.filename or "")
+        except ValueError as e:
+            return JSONResponse(status_code=400, content={"error": f"{f.filename}: {str(e)}"})
+        gstr2b_extracted.append(ext)
+
+    gstr2b_data = merge_gstr2b_files(gstr2b_extracted)
+
+    books_bytes = await books_file.read()
+    try:
+        books_data = extract_books(books_bytes, books_file.filename)
+    except ValueError as e:
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
+    # GSTIN cross-check (best-effort — Books template has no GSTIN column today,
+    # so this only fires when one is actually present in extracted data).
+    gstin_warning = None
+    gstr2b_gstin = str(gstr2b_data.get("gstin") or "").strip()
+    books_gstin = str(books_data.get("gstin") or "").strip()
+    if gstr2b_gstin and books_gstin and gstr2b_gstin != books_gstin:
+        gstin_warning = f"GSTIN mismatch: GSTR-2B={gstr2b_gstin}, Books={books_gstin}"
+
+    result = reconcile_gstr2b_vs_books(gstr2b_data, books_data, gstin_warning)
+    result["gstin_2b"] = gstr2b_gstin
+    result["gstin_books"] = books_gstin
+    result["months_detected"] = len(result.get("monthly", []))
+    result["gstr2b_data"] = gstr2b_data
+    result["books_data"] = books_data
+    return JSONResponse(content=to_jsonable(result))
+
+
+@app.post("/api/reconcile/gstr2b-books/excel")
+async def reconcile_gstr2b_books_excel(payload: dict):
+    """
+    Generate Excel report from an already-reconciled result.
+    Body: { result: {...}, gstr2b_data: {...}, books_data: {...}, gstin_2b: str, gstin_books: str }
+    """
+    try:
+        result = payload.get("result", {})
+        gstr2b_data = payload.get("gstr2b_data", {})
+        books_data = payload.get("books_data", {})
+        gstin_2b = payload.get("gstin_2b", "")
+        gstin_books = payload.get("gstin_books", "")
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx") as tmp:
+            tmp_path = tmp.name
+
+        generate_gstr2b_books_excel(result, tmp_path, gstr2b_data, books_data, gstin_2b, gstin_books)
+
+        with open(tmp_path, "rb") as f:
+            content = f.read()
+        os.unlink(tmp_path)
+
+        return Response(
+            content=content,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=gstr2b_vs_books.xlsx"}
+        )
+    except Exception as e:
+        logger.exception("Failed to generate GSTR-2B vs Books Excel")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 @app.get("/api/schema_structure")
 async def schema_structure():
     """Return schema organized by heading -> categories -> subcategories preserving order."""

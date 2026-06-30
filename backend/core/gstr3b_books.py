@@ -3,6 +3,7 @@ import datetime
 import tempfile
 import os
 from typing import Optional
+import re
 
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
@@ -13,8 +14,7 @@ logger = logging.getLogger(__name__)
 # ─── Recon row definitions ────────────────────────────────────────────────────
 
 RECON_ROWS = [
-    ("sales",         "Sales / Outward Value"),
-    ("taxable_value", "Taxable Value"),
+    ("taxable_value", "Taxable Value (incl. Sales/Exports)"),
     ("igst",          "IGST"),
     ("cgst",          "CGST"),
     ("sgst",          "SGST"),
@@ -29,7 +29,7 @@ TOLERANCE_MINOR  = 100.0
 def _status(diff: float) -> str:
     abs_diff = abs(diff)
     if abs_diff <= TOLERANCE_MATCH:  return "Match"
-    if abs_diff <= TOLERANCE_MINOR:  return "Minor Difference"
+    if abs_diff <= TOLERANCE_MINOR:  return "Difference"
     return "Mismatch"
 
 # ─── GSTR-3B normalizer ───────────────────────────────────────────────────────
@@ -40,9 +40,10 @@ def normalize_gstr3b(g3b: dict) -> dict:
             return round(float(str(v).replace(",","") or 0), 2)
         except Exception:
             return 0.0
+    taxable = sf(g3b.get("outward_taxable_value", 0)) + sf(g3b.get("zero_rated_value", 0))
     return {
-        "sales":         sf(g3b.get("outward_taxable_value", 0)) + sf(g3b.get("zero_rated_value", 0)),
-        "taxable_value": sf(g3b.get("outward_taxable_value", 0)),
+        "sales":         taxable,
+        "taxable_value": taxable,
         "igst":          sf(g3b.get("outward_igst", 0)) + sf(g3b.get("zero_rated_igst", 0)),
         "cgst":          sf(g3b.get("outward_cgst", 0)),
         "sgst":          sf(g3b.get("outward_sgst", 0)),
@@ -50,7 +51,6 @@ def normalize_gstr3b(g3b: dict) -> dict:
         "itc":           sf(g3b.get("other_itc_igst", 0)) + sf(g3b.get("other_itc_cgst", 0)) + sf(g3b.get("other_itc_sgst", 0)),
         "rcm":           sf(g3b.get("inward_reverse_charge_igst", 0)) + sf(g3b.get("inward_reverse_charge_cgst", 0)) + sf(g3b.get("inward_reverse_charge_sgst", 0)),
     }
-
 # ─── Per-period reconciliation ────────────────────────────────────────────────
 
 def reconcile_period(period: str, books: dict, g3b_norm: dict) -> dict:
@@ -70,7 +70,7 @@ def reconcile_period(period: str, books: dict, g3b_norm: dict) -> dict:
         })
     overall = (
         "Matched" if total_variance <= TOLERANCE_MATCH
-        else "Minor Difference" if total_variance <= TOLERANCE_MINOR
+        else "Difference" if total_variance <= TOLERANCE_MINOR
         else "Mismatch"
     )
     return {
@@ -87,21 +87,43 @@ def reconcile_gstr3b_vs_books(
     books_data:  dict,
     gstin_warning: Optional[str] = None,
 ) -> dict:
-    """
-    g3b_records: list of extracted GSTR-3B dicts (one per month from existing extractor)
-    books_data:  output of extract_books() — { "gstin", "periods", "audit" }
-    """
-    def get_period(r: dict) -> str:
-        tp = r.get("TaxPeriod") or r.get("tax_period") or r.get("period") or ""
-        fy = r.get("FinancialYear") or r.get("year") or ""
-        if tp and fy:
-            return f"{tp} {fy}"
-        return tp or r.get("filename", "Unknown")
+    MONTH_NUM = {
+        "april": 4, "may": 5, "june": 6, "july": 7, "august": 8, "september": 9,
+        "october": 10, "november": 11, "december": 12,
+        "january": 1, "february": 2, "march": 3,
+    }
+
+    def get_period(r: dict) -> Optional[str]:
+        """Normalize GSTR-3B period to YYYY-MM to match Books period keys."""
+        tp = str(r.get("TaxPeriod") or r.get("tax_period") or r.get("period") or "").strip()
+        fy = str(r.get("FinancialYear") or r.get("year") or "").strip()
+
+        month_lc = tp.lower()
+        month_num = None
+        for name, num in MONTH_NUM.items():
+            if name in month_lc:
+                month_num = num
+                break
+
+        if month_num is None:
+            return None  # cannot normalize — will be skipped/logged
+
+        # FY like "2025-26" -> first year 2025, second year 2026
+        fy_match = re.match(r"(\d{4})", fy)
+        first_year = int(fy_match.group(1)) if fy_match else None
+
+        if first_year is None:
+            return None
+
+        # April-December belong to the first year of FY; Jan-March belong to the second year
+        calendar_year = first_year if month_num >= 4 else first_year + 1
+        return f"{calendar_year}-{month_num:02d}"
 
     g3b_by_period = {}
     for r in g3b_records:
         p = get_period(r)
-        g3b_by_period[p] = normalize_gstr3b(r)
+        if p:
+            g3b_by_period[p] = normalize_gstr3b(r)
 
     books_periods = books_data.get("periods", {})
 
@@ -137,7 +159,7 @@ def reconcile_gstr3b_vs_books(
         "months": len(all_periods),
         "matched": sum(1 for p in period_results if p["overall_status"] == "Matched"),
         "mismatches": sum(1 for p in period_results if p["overall_status"] == "Mismatch"),
-        "minor": sum(1 for p in period_results if p["overall_status"] == "Minor Difference"),
+        "minor": sum(1 for p in period_results if p["overall_status"] == "Difference"),
         "gstin_warning": gstin_warning,
         "audit": books_data.get("audit", {}),
     }
@@ -172,8 +194,8 @@ def _w(ws, col, width):
     ws.column_dimensions[get_column_letter(col)].width = width
 
 def _status_fill(status: str):
-    if status == "Matched":       return _GREEN
-    if status == "Minor Difference": return _YELLOW
+    if status == "Matched":  return _GREEN
+    if status == "Difference": return _YELLOW
     return _RED
 
 # ─── Sheet writers ────────────────────────────────────────────────────────────
