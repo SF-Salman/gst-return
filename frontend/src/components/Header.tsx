@@ -1,4 +1,4 @@
-import { Sun, Moon, FileSpreadsheet } from 'lucide-react'
+import { Sun, Moon,} from 'lucide-react'
 
 interface Props {
   theme: 'light' | 'dark' | 'system'
