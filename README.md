@@ -1,167 +1,191 @@
-# GST Returns Extractor (Web + API)
+# GST Reconciler — Web Application
 
-Enhanced tool for extracting comprehensive data from GSTR-1 and GSTR-3B returns in both PDF and JSON formats. Now ships a single backend service that also serves the React SPA.
+A full-stack web application for extracting, viewing, and reconciling Indian GST returns (GSTR-1, GSTR-2B, GSTR-3B). Combines a FastAPI backend with a React SPA served from the same single service.
 
-## 🚀 New Features (v3.0)
+---
 
-- ✅ **Unified Single Service**: FastAPI serves the API and the React SPA
-- ✅ **Healthcheck Endpoint**: `/api/health` with Docker Compose healthcheck
-- ✅ **Dockerized Build**: Multi-stage Dockerfile; simplified single-service compose
-- ✅ **Env-Based API Base**: `VITE_API_BASE` support (build-time arg and runtime env)
-- ✅ **Docs Refresh**: Updated README, USAGE, and frontend README for SPA + API
-- ✅ **Git Hygiene**: Improved `.gitignore` and `.gitattributes` for cross-platform EOL
+## What it does
 
-## 📋 Features
+**Upload & Extract**
+Upload GSTR-1 or GSTR-3B returns as PDF or JSON. The app extracts all fields into a structured, categorised summary that you can browse table-by-table and export as a formatted Excel workbook.
 
-### Supported Formats
-- **PDF**: Extract from PDF returns downloaded from GSTN portal
-- **JSON**: Import from official GSTN JSON format
+**Reconcile**
+Three reconciliation modules are available, each with downloadable Excel reports:
 
-### Supported Returns
-- **GSTR-1**: All tables (4A-19) including B2B, B2CL, Exports, SEZ, HSN, amendments
-- **GSTR-3B**: All sections including supplies, ITC, exempt supplies, payment details
+| Module | Left side | Right side |
+|---|---|---|
+| GSTR-1 vs GSTR-3B | GSTR-1 PDF/JSON | GSTR-3B PDF/JSON |
+| GSTR-3B vs Books | GSTR-3B PDF (single or multi-month) | Books Excel/CSV |
+| GSTR-2B vs Books | GSTR-2B Excel (1–12 months) | Books Excel/CSV |
 
-### Data Extraction
-- **200+ fields** for GSTR-1 (all tables and sub-categories)
-- **150+ fields** for GSTR-3B (complete coverage)
-- Automatic validation and quality scoring
-- Summary statistics and calculated totals
+---
 
-## 🔧 Installation & Setup
+## Tech stack
 
-### Prerequisites
-- Python 3.11
-- Node 18.x (for building the frontend)
+| Layer | Technology |
+|---|---|
+| Backend API | Python 3.11 · FastAPI · pdfplumber · openpyxl · rapidfuzz |
+| Frontend | React 18 · TypeScript · Vite · Tailwind CSS |
+| Deployment | Docker (multi-stage build, single service) |
 
-### Install backend dependencies
-```bash
-pip install -r requirements.txt
+---
+
+## Project structure
+
+```
+.
+├── backend/
+│   ├── api/
+│   │   └── main.py              # All API endpoints
+│   ├── core/
+│   │   ├── books_extractor.py   # Books Excel/CSV parser
+│   │   ├── gstr1_vs_3b.py       # GSTR-1 vs GSTR-3B reconciliation
+│   │   ├── gstr2b_extractor.py  # GSTR-2B Excel parser
+│   │   ├── gstr2b_vs_books.py   # GSTR-2B vs Books reconciliation
+│   │   ├── gstr3b_books.py      # GSTR-3B vs Books reconciliation
+│   │   ├── reconciliation.py    # Invoice-level fuzzy matching engine
+│   │   └── models.py            # Shared type definitions
+│   └── schemas/
+│       ├── gstr1.json           # GSTR-1 field schema (drives viewer + export)
+│       └── gstr3b.json          # GSTR-3B field schema
+├── frontend/
+│   └── src/
+│       ├── App.tsx              # Upload & extraction module
+│       └── components/
+│           ├── ReconciliationPage.tsx   # All three reconciliation tabs
+│           └── ExtractedDataViewer.tsx  # Shared table viewer component
+├── gstr1.py                     # Standalone GSTR-1 PDF/JSON extractor
+├── gstr3b.py                    # Standalone GSTR-3B PDF extractor
+└── json_import.py               # Official GSTN JSON importer
 ```
 
-### Install frontend dependencies
+---
+
+## Running locally
+
+### Prerequisites
+
+- Python 3.11
+- Node 18+
+
+### Backend
+
+```bash
+pip install -r requirements.txt
+uvicorn backend.api.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+### Frontend dev server
+
 ```bash
 cd frontend
 npm ci
-```
-
-## 💻 Running
-
-### Dev (recommended)
-- Backend API:
-```bash
-uvicorn backend.api.main:app --reload --host 127.0.0.1 --port 8000
-```
-- Frontend dev server:
-```bash
-cd frontend
 npm run dev
 ```
-Optional: create `frontend/.env.development` with `VITE_API_BASE=http://127.0.0.1:8000` to ensure the dev app points to the local backend.
+
+Create `frontend/.env.development` with:
+```
+VITE_API_BASE=http://127.0.0.1:8000
+```
+
+Open `http://localhost:5173` (dev) or `http://127.0.0.1:8000` (backend-served SPA).
 
 ### Backend-served SPA (no dev server)
-Build the frontend, then run the backend which serves the SPA from `frontend/dist`:
+
 ```bash
 cd frontend && npm run build
 uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
 ```
+
 Open `http://127.0.0.1:8000/`.
 
-### Docker (single service)
+### Docker
+
 ```bash
 docker compose build
 docker compose up -d
 ```
-Open `http://localhost:8000/` (SPA) and `http://localhost:8000/docs` (API docs).
 
-## 🧩 Environment
-- Frontend uses `VITE_API_BASE` to select the API endpoint.
-  - Dev: set `VITE_API_BASE=http://127.0.0.1:8000` in `frontend/.env.development`.
-  - Prod: default same-origin (no env var required), or set `VITE_API_BASE=https://yourdomain`.
-  - See `frontend/.env.example`.
+Open `http://localhost:8000/`.
 
-## 🛠 CLI (optional)
+---
 
-#### Process PDF files:
+## Key API endpoints
+
+### Extraction
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/gstr3b/pdf` | Extract GSTR-3B from PDF |
+| `POST` | `/api/gstr1/pdf` | Extract GSTR-1 from PDF |
+| `POST` | `/api/gstr3b/json` | Extract GSTR-3B from GSTN JSON |
+| `POST` | `/api/gstr1/json` | Extract GSTR-1 from GSTN JSON |
+| `POST` | `/api/gstr2b/json` | Extract GSTR-2B from GSTN JSON |
+| `POST` | `/api/summarize` | Build categorised table summary from extracted records |
+| `POST` | `/api/tables_excel` | Export structured multi-sheet Excel from extracted records |
+| `POST` | `/api/excel` | Export flat Excel from extracted records |
+
+### Reconciliation
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/reconcile/gstr1-3b/from-pdf` | Reconcile GSTR-1 vs GSTR-3B (PDF uploads) |
+| `POST` | `/api/reconcile/gstr1-3b/excel` | Download GSTR-1 vs GSTR-3B Excel report |
+| `POST` | `/api/reconcile/gstr3b-books` | Reconcile GSTR-3B vs Books |
+| `POST` | `/api/reconcile/gstr3b-books/excel` | Download GSTR-3B vs Books Excel report |
+| `GET`  | `/api/reconcile/gstr3b-books/template` | Download blank Books template |
+| `POST` | `/api/reconcile/gstr2b-books` | Reconcile GSTR-2B vs Books (1–12 months) |
+| `POST` | `/api/reconcile/gstr2b-books/excel` | Download GSTR-2B vs Books Excel report |
+| `GET`  | `/api/reconcile/gstr2b-books/template` | Download blank Books template |
+
+Interactive API docs: `http://127.0.0.1:8000/docs`
+
+---
+
+## Books file format
+
+Both GSTR-3B vs Books and GSTR-2B vs Books use the same Books upload format. Download a blank template from either reconciliation tab. The required columns are:
+
+| Column | Values / Notes |
+|---|---|
+| `Month` | `Apr-25`, `May-25`, … `Mar-26` |
+| `Voucher Date` | `DD-MM-YYYY` |
+| `Voucher No` | Any string |
+| `Ledger` | Ledger/account name |
+| `Category` | `OUTPUT` · `ITC` · `RCM` · `REVERSAL` · `EXEMPT` |
+| `Taxable Value` | Numeric |
+| `IGST` | Numeric |
+| `CGST` | Numeric |
+| `SGST` | Numeric |
+| `CESS` | Numeric |
+| `Type` | Any label (e.g. `B2B`, `B2C`, `Import`) |
+| `Remarks` | Optional notes |
+
+A single Books file works for both GSTR-3B and GSTR-2B reconciliation — the `Category` column determines which rows each module uses (`OUTPUT`/`RCM` for GSTR-3B, `ITC`/`REVERSAL` for GSTR-2B).
+
+---
+
+## Reconciliation status codes
+
+| Status | Meaning |
+|---|---|
+| `MATCH` | Difference ≤ ₹1 |
+| `WARNING` | Difference ≤ ₹100 |
+| `MISMATCH` | Difference > ₹100 |
+| `MONTH_MISSING` | Period present in one source only |
+
+---
+
+## CLI (optional)
+
 ```bash
+# Extract GSTR-1 from a folder of PDFs
 python gstr1.py --input /path/to/pdfs --output output.xlsx --format pdf
-```
 
-#### Process JSON files:
-```bash
+# Extract from GSTN JSON files
 python gstr1.py --input /path/to/jsons --output output.xlsx --format json
 ```
 
-#### With verbose logging:
-```bash
-python gstr1.py --input /path/to/files --output output.xlsx --format pdf --verbose
-```
+---
 
-### 3. Python API
+## Disclaimer
 
-#### Extract from PDF:
-```python
-from gstr1 import extract_gstr1_data
-
-data = extract_gstr1_data('path/to/gstr1.pdf')
-```
-
-#### Import from JSON:
-```python
-from json_import import extract_gstr1_from_json, load_json_file
-
-json_data = load_json_file('path/to/gstr1.json')
-data = extract_gstr1_from_json(json_data)
-```
-
-## 📊 Output Format
-
-### Excel Sheets
-
-#### GSTR-1:
-1. **GSTR1_Data**: Complete extracted data (200+ fields)
-2. **Summary_Statistics**: Key metrics and totals
-3. **Validation_Results**: Data quality and validation status
-
-#### GSTR-3B:
-1. **GSTR-3B Data**: Complete extracted data (150+ fields)
-
-## 📖 Documentation
-
-- **USAGE.md**: Comprehensive usage guide with examples
-- **ENHANCEMENT_SUMMARY.md**: Details of v3 enhancements
-- **GSTR1_Comprehensive_Fields.md**: Complete field reference for GSTR-1
-- **GSTR3B_Comprehensive_Fields.md**: Complete field reference for GSTR-3B
-
-## ✨ Key Benefits
-
-1. **Complete Data Capture**: All fields extracted, no data loss
-2. **Flexible Input**: Support for both PDF and JSON formats
-3. **Batch Processing**: Process multiple files efficiently
-4. **Quality Assurance**: Built-in validation and quality scoring
-5. **User-Friendly**: Web interface and command-line options
-
-## ⚠️ Disclaimer
-
-This tool is for informational purposes only! Always verify extracted data with official GSTN portal records before making filing decisions. The developers are not liable for any errors or omissions in extracted data.
-
-## 📝 Version History
-
-### v3.0 (Current)
-- Unified SPA + FastAPI single service
-- Healthcheck endpoint and Docker Compose healthcheck
-- Docker multi-stage build and single-service compose
-- Environment-based API base (`VITE_API_BASE`) with optional build-arg
-- Updated documentation (README, USAGE, frontend README)
-- `.gitignore`/`.gitattributes` improvements for consistent line endings
-
-### v2.0
-- Added JSON import support
-- Enhanced field extraction (200+ fields for GSTR-1, 150+ for GSTR-3B)
-- Added comprehensive validation
-- Improved error handling
-- Enhanced documentation
-
-### v1.0
-- Initial PDF extraction
-- Basic field extraction
-- Excel export
+This tool is for informational purposes only. Always verify extracted data against official GSTN portal records before making any filing decisions. The developers are not liable for errors or omissions in extracted data.

@@ -103,7 +103,7 @@ The enhanced GSTR-1 tool now captures ALL available information from GSTR-1 retu
 - **9A_DE_SGST**: Deemed export amendment SGST
 - **9A_DE_Cess**: Deemed export amendment CESS
 
-### 12. Table 9B - Credit/Debit Notes (Unregistered)
+### 12. Table 9B - Credit/Debit Notes
 - **9B_Value**: Total credit/debit note value
 - **9B_IGST**: Total IGST amount
 - **9B_Cess**: Total CESS amount

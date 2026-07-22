@@ -609,34 +609,6 @@
     "Field Description": "Non-GST supply - Intra-state"
   },
   {
-    "Field Name": "nil_rated_inter_state",
-    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
-    "Category": "Nil Rated Supplies",
-    "Sub Category": "None",
-    "Field Description": "Nil rated supplies - Inter-state"
-  },
-  {
-    "Field Name": "nil_rated_intra_state",
-    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
-    "Category": "Nil Rated Supplies",
-    "Sub Category": "None",
-    "Field Description": "Nil rated supplies - Intra-state"
-  },
-  {
-    "Field Name": "exempted_inter_state",
-    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
-    "Category": "Exempted Supplies",
-    "Sub Category": "None",
-    "Field Description": "Exempted supplies - Inter-state"
-  },
-  {
-    "Field Name": "exempted_intra_state",
-    "Headings": "Table 5: Exempt/Nil/Non-GST Inward Supplies",
-    "Category": "Exempted Supplies",
-    "Sub Category": "None",
-    "Field Description": "Exempted supplies - Intra-state"
-  },
-  {
     "Field Name": "interest_igst",
     "Headings": "Table 5.1: Interest and Late Fee",
     "Category": "Interest Paid",
@@ -1119,41 +1091,15 @@
     "Sub Category": "None",
     "Field Description": "TCS SGST"
   },
-  {
-    "Field Name": "value",
-    "Headings": "Reverse Charge Supplies",
-    "Category": "Reverse Charge Supplies",
-    "Sub Category": "None",
-    "Field Description": "Reverse charge supplies value"
-  },
-  {
-    "Field Name": "igst",
-    "Headings": "Reverse Charge Supplies",
-    "Category": "Reverse Charge Supplies",
-    "Sub Category": "None",
-    "Field Description": "Reverse charge supplies IGST"
-  },
-  {
-    "Field Name": "cgst",
-    "Headings": "Reverse Charge Supplies",
-    "Category": "Reverse Charge Supplies",
-    "Sub Category": "None",
-    "Field Description": "Reverse charge supplies CGST"
-  },
-  {
-    "Field Name": "sgst",
-    "Headings": "Reverse Charge Supplies",
-    "Category": "Reverse Charge Supplies",
-    "Sub Category": "None",
-    "Field Description": "Reverse charge supplies SGST"
-  },
-  {
-    "Field Name": "cess",
-    "Headings": "Reverse Charge Supplies",
-    "Category": "Reverse Charge Supplies",
-    "Sub Category": "None",
-    "Field Description": "Reverse charge supplies CESS"
-  },
+  {"Field Name": "inward_reverse_charge_value",
+   "Headings": "Reverse Charge Supplies",
+    "Category": "Reverse Charge Supplies", 
+    "Sub Category": "None", 
+    "Field Description": "Reverse charge supplies value"},
+  {"Field Name": "inward_reverse_charge_igst",  "Headings": "Reverse Charge Supplies", "Category": "Reverse Charge Supplies", "Sub Category": "None", "Field Description": "Reverse charge supplies IGST"},
+  {"Field Name": "inward_reverse_charge_cgst",  "Headings": "Reverse Charge Supplies", "Category": "Reverse Charge Supplies", "Sub Category": "None", "Field Description": "Reverse charge supplies CGST"},
+  {"Field Name": "inward_reverse_charge_sgst",  "Headings": "Reverse Charge Supplies", "Category": "Reverse Charge Supplies", "Sub Category": "None", "Field Description": "Reverse charge supplies SGST"},
+  {"Field Name": "inward_reverse_charge_cess",  "Headings": "Reverse Charge Supplies", "Category": "Reverse Charge Supplies", "Sub Category": "None", "Field Description": "Reverse charge supplies CESS"},
   {
     "Field Name": "value_1",
     "Headings": "Other Debit/Credit Entries",

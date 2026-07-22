@@ -444,64 +444,127 @@
     "Field Description": "Deemed export amendment CESS"
   },
   {
-    "Field Name": "9B_Value",
+    "Field Name": "9B_NetDiff_Value",
     
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
-    "Field Description": "Total credit/debit note value"
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "Total net difference value (CDNR + CDNUR combined)"
   },
   {
-    "Field Name": "9B_IGST",
+    "Field Name": "9B_NetDiff_IGST",
     
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total IGST amount"
   },
   {
-    "Field Name": "9B_Cess",
+    "Field Name": "9B_NetDiff_Cess",
     
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total CESS amount"
   },
   {
-    "Field Name": "9B_B2CL_Value",
-    
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
-    "Field Description": "B2CL credit/debit note value"
+  "Field Name": "9B_CDNUR_B2CL_Value",
+  "Category": " 12. Table 9B - Credit/Debit Notes",
+  "Field Description": "CDNUR (Unregistered) — B2CL credit/debit note value"
   },
   {
-    "Field Name": "9B_B2CL_IGST",
-    
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
+    "Field Name": "9B_CDNUR_B2CL_IGST",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "B2CL credit/debit note IGST"
   },
   {
-    "Field Name": "9B_B2CL_Cess",
-    
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
+    "Field Name": "9B_CDNUR_B2CL_Cess",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "B2CL credit/debit note CESS"
   },
   {
-    "Field Name": "9B_EXPWP_Value",
-    
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
+    "Field Name": "9B_CDNUR_EXPWP_Value",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "EXPWP credit/debit note value"
   },
   {
-    "Field Name": "9B_EXPWP_IGST",
-    
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
+    "Field Name": "9B_CDNUR_EXPWP_IGST",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "EXPWP credit/debit note IGST"
   },
   {
-    "Field Name": "9B_EXPWP_Cess",
-    
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
+    "Field Name": "9B_CDNUR_EXPWP_Cess",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "EXPWP credit/debit note CESS"
   },
   {
-    "Field Name": "9B_EXPWOP_Value",
-    
-    "Category": " 12. Table 9B - Credit/Debit Notes (Unregistered)",
+    "Field Name": "9B_CDNUR_EXPWOP_Value",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "EXPWOP credit/debit note value"
+  },
+  {
+  "Field Name": "9B_CDNR_Total_Value",
+  "Headings": "Table-wise Data Extraction",
+  "Category": " 12. Table 9B - Credit/Debit Notes",
+  "Field Description": "CDNR (Registered) — Total credit/debit note value"
+  },
+  {
+    "Field Name": "9B_CDNR_Total_IGST",
+    "Headings": "Table-wise Data Extraction",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "Total CDNR IGST"
+  },
+  {
+    "Field Name": "9B_CDNR_Total_CGST",
+    "Headings": "Table-wise Data Extraction",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "Total CDNR CGST"
+  },
+  {
+    "Field Name": "9B_CDNR_Total_SGST",
+    "Headings": "Table-wise Data Extraction",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "Total CDNR SGST"
+  },
+  {
+    "Field Name": "9B_CDNR_Total_Cess",
+    "Headings": "Table-wise Data Extraction",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "Total CDNR Cess"
+  },
+  {
+    "Field Name": "9B_CDNR_SEZ_Value",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "SEZ credit/debit note value"
+  },
+  {
+    "Field Name": "9B_CDNR_SEZ_IGST",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "SEZ credit/debit note IGST"
+  },
+  {
+    "Field Name": "9B_CDNR_SEZ_Cess",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "SEZ credit/debit note CESS"
+  },
+  {
+    "Field Name": "9B_CDNR_DE_Value",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "DE credit/debit note value"
+  },
+  {
+    "Field Name": "9B_CDNR_DE_IGST",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "DE credit/debit note IGST"
+  },
+  {
+    "Field Name": "9B_CDNR_DE_CGST",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "DE credit/debit note CGST"
+  },
+  {
+    "Field Name": "9B_CDNR_DE_SGST",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "DE credit/debit note SGST"
+  },
+  {
+    "Field Name": "9B_CDNR_DE_Cess",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "DE credit/debit note CESS"
   },
   {
     "Field Name": "9C_Value",

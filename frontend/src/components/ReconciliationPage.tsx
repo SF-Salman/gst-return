@@ -1,15 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { X, Download, AlertCircle,Upload,
   CheckCircle2, AlertTriangle, RefreshCw, ChevronDown,
-  Calendar, Layers, GitCompare,
+  Calendar, Layers, GitCompare, FileSpreadsheet,
 } from 'lucide-react'
 import React from 'react'
 import ExtractedDataViewer, { type SummaryData } from './ExtractedDataViewer'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ReconStatus = 'Match' | 'Mismatch' | 'Missing'
-
+type ReconStatus = 'Match' | 'Mismatch' | 'Missing' | 'Info'
 interface SummaryRow {
   section: string
   description: string
@@ -24,6 +23,7 @@ interface PeriodResult {
   gstin: string
   overall_status: 'Matched' | 'Mismatch'
   total_variance: number
+  breakdown?: Record<string, any> 
   rows: SummaryRow[]
 }
 
@@ -45,11 +45,13 @@ const API_BASE: string =
 const numFmt = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 })
 const fmt = (v: number) => numFmt.format(v)
 
-function statusPill(status: ReconStatus) {
+function statusPill(status: string) {
   if (status === 'Match')
     return <span className="pill pill-lo flex items-center gap-1"><CheckCircle2 size={10} />Match</span>
   if (status === 'Missing')
     return <span className="pill pill-inf flex items-center gap-1"><AlertCircle size={10} />Missing</span>
+  if (status === 'Info')
+    return <span className="pill pill-inf flex items-center gap-1"><AlertCircle size={10} />Info</span>
   return <span className="pill pill-hi flex items-center gap-1"><AlertTriangle size={10} />Mismatch</span>
 }
 
@@ -57,7 +59,7 @@ function statusPill(status: ReconStatus) {
 
 function PeriodCard({ result, defaultOpen }: { result: PeriodResult; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(defaultOpen ?? true)
-  const mismatches = result.rows.filter(r => r.status !== 'Match').length
+  const mismatches = result.rows.filter(r => r.status !== 'Match' && r.status !== 'Info').length
   const isClean = result.overall_status === 'Matched'
 
   return (
@@ -101,6 +103,7 @@ function PeriodCard({ result, defaultOpen }: { result: PeriodResult; defaultOpen
                   className={`transition-colors
                     ${row.status === 'Mismatch' ? 'bg-err/5 hover:bg-err/10' :
                       row.status === 'Missing'  ? 'bg-warn/5 hover:bg-warn/10' :
+                      row.status === 'Info'     ? 'bg-sub/30' :
                       'hover:bg-sub/50'}`}
                 >
                   <td className="px-3 py-2 font-mono text-[10px] text-tx3 whitespace-nowrap">{row.section}</td>
@@ -148,12 +151,7 @@ function AnnualSummary({ periods }: { periods: PeriodResult[] }) {
     'Exports / Zero Rated Value',
     'Exports IGST',
     'Nil / Exempt Supplies',
-    'Reverse Charge Value',
-    'Reverse Charge IGST',
-    'Reverse Charge CGST',
-    'Reverse Charge SGST',
   ]
-
   return (
     <div className="rounded-xl border border-border bg-surf shadow-sm overflow-hidden">
       <div className="px-4 py-3 bg-sub/60 border-b border-border flex items-center gap-2">
@@ -523,13 +521,32 @@ function Gstr2bBooksAnnualSummary({ periods }: { periods: any[] }) {
 function Gstr3bBooksAnnualSummary({ periods }: { periods: any[] }) {
   if (!periods.length) return null
 
-  // Collect every distinct description across all periods, preserving first-seen order
+
+  const SECTIONS = [
+    { label: 'Outward Supplies', descs: ['Taxable Value', 'Zero Rated Supplies', 'Nil Rated Supplies', 'IGST Output', 'CGST Output', 'SGST Output'] },
+    { label: 'RCM Inward',       descs: ['RCM Taxable Value', 'RCM IGST', 'RCM CGST', 'RCM SGST'] },
+    { label: 'ITC Available',    descs: ['ITC Available IGST', 'ITC Available CGST', 'ITC Available SGST'] },
+    { label: 'ITC Reversed',     descs: ['ITC Reversed IGST', 'ITC Reversed CGST', 'ITC Reversed SGST'] },
+    { label: 'Ineligible ITC',   descs: ['Ineligible ITC IGST', 'Ineligible ITC CGST', 'Ineligible ITC SGST'] },
+    { label: 'Net ITC',          descs: ['Net ITC IGST', 'Net ITC CGST', 'Net ITC SGST'] },
+    { label: 'ITC Utilised',     descs: ['ITC Utilised IGST', 'ITC Utilised CGST', 'ITC Utilised SGST'] },
+    { label: 'Net Tax Payable',  descs: ['Net Tax Payable'] },
+    { label: 'Cash Paid',        descs: ['Cash Paid IGST', 'Cash Paid CGST', 'Cash Paid SGST'] },
+    { label: 'Interest',         descs: ['Interest IGST', 'Interest CGST', 'Interest SGST'] },
+    { label: 'Late Fee',         descs: ['Late Fee CGST', 'Late Fee SGST'] },
+  ]
+  // Only include sections where at least one desc exists in the actual data
   const ALL_DESCS: string[] = []
   periods.forEach(p => {
     ;(p.rows ?? []).forEach((r: any) => {
       if (!ALL_DESCS.includes(r.description)) ALL_DESCS.push(r.description)
     })
   })
+  const ACTIVE_SECTIONS = SECTIONS.map(s => ({
+    ...s,
+    descs: s.descs.filter(d => ALL_DESCS.includes(d))
+  })).filter(s => s.descs.length > 0)
+  const ORDERED_DESCS = ACTIVE_SECTIONS.flatMap(s => s.descs)
 
   return (
     <div className="rounded-xl border border-border bg-surf shadow-sm overflow-hidden">
@@ -542,9 +559,20 @@ function Gstr3bBooksAnnualSummary({ periods }: { periods: any[] }) {
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
+            <tr className="bg-sub/60 border-b border-border">
+              <th className="px-3 py-1 sticky left-0 bg-sub/60 z-10" />
+              {ACTIVE_SECTIONS.map(s => (
+                <th key={s.label} colSpan={s.descs.length * 3}
+                  className="px-3 py-1 text-center font-semibold text-tx text-[11px] border-l border-border whitespace-nowrap">
+                  {s.label}
+                </th>
+              ))}
+              <th className="px-3 py-1 border-l border-border" />
+              <th className="px-3 py-1" />
+            </tr>
             <tr className="bg-sub/40">
               <th className="px-3 py-2 text-left font-semibold text-tx2 sticky left-0 bg-sub/40 whitespace-nowrap z-10">Period</th>
-              {ALL_DESCS.map(desc => (
+              {ORDERED_DESCS.map(desc => (
                 <th key={desc} colSpan={3} className="px-3 py-2 text-center font-semibold text-tx2 whitespace-nowrap border-l border-border">
                   {desc}
                 </th>
@@ -554,7 +582,7 @@ function Gstr3bBooksAnnualSummary({ periods }: { periods: any[] }) {
             </tr>
             <tr className="bg-sub/20 border-b border-border">
               <th className="px-3 py-1 sticky left-0 bg-sub/20 z-10" />
-              {ALL_DESCS.map(desc => (
+              {ORDERED_DESCS.map(desc => (
                 <React.Fragment key={desc}>
                   <th className="px-2 py-1 text-right font-medium text-tx3 text-[10px] border-l border-border whitespace-nowrap">Books</th>
                   <th className="px-2 py-1 text-right font-medium text-tx3 text-[10px] whitespace-nowrap">GSTR-3B</th>
@@ -572,7 +600,7 @@ function Gstr3bBooksAnnualSummary({ periods }: { periods: any[] }) {
               return (
                 <tr key={i} className={`transition-colors ${p.overall_status === 'Matched' ? 'hover:bg-sub/40' : 'bg-err/5 hover:bg-err/10'}`}>
                   <td className="px-3 py-2 font-medium text-tx sticky left-0 bg-inherit whitespace-nowrap z-10">{p.period}</td>
-                  {ALL_DESCS.map(desc => {
+                  {ORDERED_DESCS.map(desc => {
                     const row = byDesc(desc)
                     const diff = row?.difference ?? 0
                     const hasDiff = Math.abs(diff) > 1
@@ -602,7 +630,7 @@ function Gstr3bBooksAnnualSummary({ periods }: { periods: any[] }) {
           <tfoot>
             <tr className="bg-sub font-semibold border-t-2 border-border">
               <td className="px-3 py-2 text-xs text-tx sticky left-0 bg-sub z-10">Annual Total</td>
-              {ALL_DESCS.map(desc => {
+              {ORDERED_DESCS.map(desc => {
                 const booksTotal = periods.reduce((s, p) => s + ((p.rows ?? []).find((r: any) => r.description === desc)?.books ?? 0), 0)
                 const g3bTotal   = periods.reduce((s, p) => s + ((p.rows ?? []).find((r: any) => r.description === desc)?.gstr3b ?? 0), 0)
                 const diffTotal  = periods.reduce((s, p) => s + ((p.rows ?? []).find((r: any) => r.description === desc)?.difference ?? 0), 0)
@@ -745,7 +773,7 @@ const [g3bBooksStep,        setG3bBooksStep]        = useState('')
 const [g3bBooksDownloading, setG3bBooksDownloading] = useState(false)
 const g3bBooksRef = useRef<HTMLInputElement>(null)
 const booksRef    = useRef<HTMLInputElement>(null)
-
+const [downloadingG3bTables, setDownloadingG3bTables] = useState(false)
 useEffect(() => {
   if (!showG3bBooksExtracted || !g3bBooksResult?.g3b_extracted?.length) return
   let cancelled = false
@@ -843,14 +871,14 @@ const books2bRef = useRef<HTMLInputElement>(null)
       gstin:          p.gstin  ?? '',
       overall_status: p.overall_status === 'Matched' ? 'Matched' : 'Mismatch',
       total_variance: p.total_variance ?? 0,
+      breakdown:      p.breakdown ?? {},
       rows: (p.rows ?? []).map((r: any) => ({
         section:     r.section,
         description: r.description,
         gstr1:       r.gstr1      ?? 0,
         gstr3b:      r.gstr3b     ?? 0,
         difference:  r.difference ?? 0,
-        status: r.status === 'Match' ? 'Match' : r.status === 'Missing' ? 'Missing' : 'Mismatch' as ReconStatus,
-      }))
+        status: (r.status === 'Match' ? 'Match' : r.status === 'Missing' ? 'Missing' : r.status === 'Info' ? 'Info' : 'Mismatch') as ReconStatus,      }))
     }))
 
     setResult({ periods, report_type: periods.length > 1 ? 'annual' : 'monthly' })
@@ -1493,13 +1521,22 @@ const downloadGstr2bBooksExcel = async () => {
     <GitCompare size={16} className="text-acc" />
     <h2 className="font-semibold text-sm text-tx">GSTR-3B vs Books Reconciliation</h2>
   </div>
-  <a
-    href={`${API_BASE}/api/reconcile/gstr3b-books/template`}
-    download
-    className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-surf text-xs font-semibold text-tx hover:bg-sub transition-all"
-  >
-    <Download size={13} /> Download Books Template
-  </a>
+  <div className="flex items-center gap-2">
+    <a
+      href={`${API_BASE}/api/reconcile/gstr3b-books/template`}
+      download
+      className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-surf text-xs font-semibold text-tx hover:bg-sub transition-all"
+    >
+      <Download size={13} /> Download Template
+    </a>
+    <a
+      href={`${API_BASE}/api/reconcile/gstr3b-books/sample`}
+      download
+      className="inline-flex items-center gap-1.5 px-3 h-8 rounded-lg border border-border bg-surf text-xs font-semibold text-tx hover:bg-sub transition-all"
+    >
+      <FileSpreadsheet size={13} /> Download Sample
+    </a>
+  </div>
 </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
@@ -1575,13 +1612,46 @@ const downloadGstr2bBooksExcel = async () => {
           </button>
         )}
         {g3bBooksResult?.g3b_extracted?.length > 0 && (
-  <button
-    onClick={() => setShowG3bBooksExtracted(v => !v)}
-    className="inline-flex items-center gap-1.5 px-3 h-9 rounded-xl border border-border
-      text-xs font-semibold text-tx hover:bg-sub transition-all"
-  >
-    {showG3bBooksExtracted ? '▲' : '▼'} View GSTR-3B Data
-  </button>
+  <>
+    <button
+      onClick={() => setShowG3bBooksExtracted(v => !v)}
+      className="inline-flex items-center gap-1.5 px-3 h-9 rounded-xl border border-border
+        text-xs font-semibold text-tx hover:bg-sub transition-all"
+    >
+      {showG3bBooksExtracted ? '▲' : '▼'} View GSTR-3B Data
+    </button>
+    <button
+      onClick={async () => {
+        setDownloadingG3bTables(true)
+        try {
+          const res = await fetch(`${API_BASE}/api/tables_excel`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              datasets: [{ records: g3bBooksResult.g3b_extracted, returnType: 'GSTR-3B' }]
+            }),
+          })
+          if (!res.ok) throw new Error('Download failed')
+          const blob = await res.blob()
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `GSTR3B_Tables_${new Date().toISOString().slice(0,10)}.xlsx`
+          a.click()
+          URL.revokeObjectURL(url)
+        } catch {
+          setG3bBooksError('Table download failed. Please try again.')
+        } finally {
+          setDownloadingG3bTables(false)
+        }
+      }}
+      disabled={downloadingG3bTables}
+      className="inline-flex items-center gap-1.5 px-3 h-9 rounded-xl border border-border
+        text-xs font-semibold text-tx hover:bg-sub transition-all disabled:opacity-50"
+    >
+      <Download size={13} /> {downloadingG3bTables ? 'Preparing…' : 'Download Tables'}
+    </button>
+  </>
 )}
         {(g3bBooksFiles.length > 0 || booksFile || g3bBooksResult) && (
   <button

@@ -19,7 +19,7 @@ from parser import parse_gst_return
 SHEET_NAMES = {
     "GSTR1":  "GSTR-1",
     "GSTR3B": "GSTR-3B",
-    "GSTR2B": "GSTR-2B",   # slot reserved
+    "GSTR2B": "GSTR-2B",  
     "UNKNOWN": "Errors",
 }
 

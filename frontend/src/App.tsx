@@ -993,7 +993,12 @@ function App() {
         const saved = localStorage.getItem(key)
         if (saved) {
           const arr = JSON.parse(saved)
-          if (Array.isArray(arr)) return arr.filter((c: string) => cats.includes(c))
+          if (Array.isArray(arr)) {
+            const valid = arr.filter((c: string) => cats.includes(c))
+            // Add any new categories not previously saved
+            const newCats = cats.filter((c: string) => !arr.includes(c))
+            return [...valid, ...newCats]
+          }
         }
       } catch {}
       return cats

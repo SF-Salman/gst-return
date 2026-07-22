@@ -11,7 +11,7 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 import time
 import traceback
 import logging
-import fitz  # PyMuPDF
+import fitz  
 
 def extract_text_pymupdf(pdf_path):
     doc = fitz.open(pdf_path)
@@ -37,6 +37,7 @@ def clean_cell(val):
     s = re.sub(r'\.\n(\d)', r'.\1', s)
     # Rejoin numbers split mid-digit e.g. "565960.0\n0"
     s = re.sub(r'(\d)\n(\d)', r'\1\2', s)
+    s = re.sub(r'(\d)\n\.(\d)', r'\1.\2', s)
     return s
 
 # Set up logging
@@ -266,28 +267,27 @@ def extract_supplies_9_5(tables):
     return flat_result
 
 def extract_interstate_supplies(tables):
+    """Extract Table 3.2 - inter-state supplies made to unregistered/composition/UIN."""
     interstate_supplies = {}
-    section_3_2_found = False
     for table in tables:
         for row in table:
             if row and len(row) > 1:
                 row_text = ' '.join([str(cell) for cell in row if cell]).lower()
-                if any(x in row_text for x in ["3.2", "inter-state supplies", "out of supplies"]):
-                    section_3_2_found = True
-                    logger.info("Found section 3.2")
-                    continue
-                if not section_3_2_found:
-                    continue
                 if "unregistered" in row_text:
                     try:
                         interstate_supplies['interstate_unreg_value'] = safe_float(clean_cell(row[1]))
                         interstate_supplies['interstate_unreg_igst']  = safe_float(clean_cell(row[2]))
                     except (ValueError, TypeError, IndexError) as e:
                         logger.error(f"Error parsing unregistered: {str(e)}")
-                elif "composition" in row_text:
+                elif "composition" in row_text and "taxable" in row_text:
+                    # NOTE: matching on bare "composition" also caught Table 5's
+                    # "From a supplier under composition scheme..." row (which
+                    # appears later in the table list and silently overwrote
+                    # this value with 0.00). "composition taxable" is specific
+                    # to this Table 3.2 row.
                     try:
                         interstate_supplies['interstate_composition_value'] = safe_float(clean_cell(row[1]))
-                        interstate_supplies['interstate_composition_igst']  = safe_float(clean_cell(row[2]))
+                        interstate_supplies['interstate_composition_igst']  = safe_float(clean_cell(row[2])) if len(row) > 2 else 0.0
                     except (ValueError, TypeError, IndexError) as e:
                         logger.error(f"Error parsing composition: {str(e)}")
                 elif "uin" in row_text:
@@ -536,7 +536,7 @@ def extract_payment_details(tables):
 
                 if normal_section:
 
-                    if "integrated" in row_text and len(row) > 8:
+                    if "integrated" in row_text and len(row) > 4:
                         try:
                             payment_details['normal'].update({
                                 'igst_payable': safe_float(clean_cell(row[1])),
@@ -554,7 +554,7 @@ def extract_payment_details(tables):
                         except (ValueError, TypeError, IndexError) as e:
                             logger.error(f"Error parsing normal IGST: {str(e)}")
 
-                    elif "central" in row_text and len(row) > 8:
+                    elif "central" in row_text and len(row) > 4:
                         try:
                             payment_details['normal'].update({
                                 'cgst_payable': safe_float(clean_cell(row[1])),
@@ -572,7 +572,7 @@ def extract_payment_details(tables):
                         except (ValueError, TypeError, IndexError) as e:
                             logger.error(f"Error parsing normal CGST: {str(e)}")
 
-                    elif "state" in row_text and len(row) > 8:
+                    elif "state" in row_text and len(row) > 4:
                         try:
                             payment_details['normal'].update({
                                 'sgst_payable': safe_float(clean_cell(row[1])),
@@ -590,7 +590,7 @@ def extract_payment_details(tables):
                         except (ValueError, TypeError, IndexError) as e:
                             logger.error(f"Error parsing normal SGST: {str(e)}")
 
-                    elif "cess" in row_text and len(row) > 8:
+                    elif "cess" in row_text and len(row) > 4:
                         try:
                             payment_details['normal'].update({
                                 'cess_payable': safe_float(clean_cell(row[1])),
@@ -614,45 +614,44 @@ def extract_payment_details(tables):
 
                 elif reverse_charge_section:
 
-                    if "integrated" in row_text:
+                    if "integrated" in row_text and len(row) > 8:
                         try:
                             payment_details['reverse_charge'].update({
                                 'rc_igst_payable': safe_float(clean_cell(row[1])),
                                 'rc_igst_net_payable': safe_float(clean_cell(row[3])) if len(row) > 3 else 0.0,
-                                'rc_igst_paid_cash': safe_float(clean_cell(row[8])) if len(row) > 8 else 0.0,
+                                'rc_igst_paid_cash': safe_float(clean_cell(row[8])) if len(row) > 8 else safe_float(clean_cell(row[3])) if len(row) > 3 else 0.0,
                             })
 
                         except (ValueError, TypeError, IndexError) as e:
                             logger.error(f"Error parsing RC IGST: {str(e)}")
 
-                    elif "central" in row_text:
+                    elif "central" in row_text and len(row) > 8:
                         try:
                             payment_details['reverse_charge'].update({
                                 'rc_cgst_payable': safe_float(clean_cell(row[1])),
                                 'rc_cgst_net_payable': safe_float(clean_cell(row[3])) if len(row) > 3 else 0.0,
-                                'rc_cgst_paid_cash': safe_float(clean_cell(row[8])) if len(row) > 8 else 0.0,
-                            })
+                                'rc_cgst_paid_cash': safe_float(clean_cell(row[8])) if len(row) > 8 else safe_float(clean_cell(row[3])) if len(row) > 3 else 0.0,                            })
 
                         except (ValueError, TypeError, IndexError) as e:
                             logger.error(f"Error parsing RC CGST: {str(e)}")
 
-                    elif "state" in row_text:
+                    elif "state" in row_text and len(row) > 8:
                         try:
                             payment_details['reverse_charge'].update({
                                 'rc_sgst_payable': safe_float(clean_cell(row[1])),
                                 'rc_sgst_net_payable': safe_float(clean_cell(row[3])) if len(row) > 3 else 0.0,
-                                'rc_sgst_paid_cash': safe_float(clean_cell(row[8])) if len(row) > 8 else 0.0,
+                                'rc_sgst_paid_cash': safe_float(clean_cell(row[8])) if len(row) > 8 else safe_float(clean_cell(row[3])) if len(row) > 3 else 0.0,
                             })
 
                         except (ValueError, TypeError, IndexError) as e:
                             logger.error(f"Error parsing RC SGST: {str(e)}")
 
-                    elif "cess" in row_text:
+                    elif "cess" in row_text and len(row) > 8:
                         try:
                             payment_details['reverse_charge'].update({
                                 'rc_cess_payable': safe_float(clean_cell(row[1])),
                                 'rc_cess_net_payable': safe_float(clean_cell(row[3])) if len(row) > 3 else 0.0,
-                                'rc_cess_paid_cash': safe_float(clean_cell(row[8])) if len(row) > 8 else 0.0,
+                                'rc_cess_paid_cash': safe_float(clean_cell(row[8])) if len(row) > 8 else safe_float(clean_cell(row[3])) if len(row) > 3 else 0.0,
                             })
 
                         except (ValueError, TypeError, IndexError) as e:
@@ -662,19 +661,37 @@ def extract_payment_details(tables):
     return payment_details
 
 def extract_reverse_charge_supplies(tables):
+    """Extract Table 3.1(d) - Inward supplies (liable to reverse charge)."""
     reverse_charge = {}
     for table in tables:
         for row in table:
             if row and len(row) > 3:
                 row_text = ' '.join([str(cell) for cell in row if cell])
-                if "Inward supplies liable to reverse charge" in row_text:
-                    try:
-                        reverse_charge['value'] = safe_float(clean_cell(row[1])) if row[1] and row[1] != "-" else None
-                        reverse_charge['igst']  = safe_float(clean_cell(row[2])) if len(row) > 2 and row[2] and row[2] != "-" else None
-                        reverse_charge['cgst']  = safe_float(clean_cell(row[3])) if len(row) > 3 and row[3] and row[3] != "-" else None
-                        reverse_charge['sgst']  = safe_float(clean_cell(row[4])) if len(row) > 4 and row[4] and row[4] != "-" else None
-                        reverse_charge['cess']  = safe_float(clean_cell(row[5])) if len(row) > 5 and row[5] and row[5] != "-" else None
+                # NOTE: matching on the bare phrase "Inward supplies liable to
+                # reverse charge" also matched Table 4A(3)'s ITC row --
+                # "(3) Inward supplies liable to reverse charge (other than 1 &
+                # 2 above)" -- since Table 3.1(d)'s actual text has
+                # parentheses ("Inward supplies (liable to reverse charge)")
+                # that don't match the phrase, extraction silently fell
+                # through to the wrong (ITC) row. Anchor on the "(d)" prefix,
+                # which is unique to Table 3.1(d), and exclude the ITC row
+                # explicitly as a second safeguard.
+                if (row[0] and str(row[0]).strip().startswith("(d)")
+                        and "reverse charge" in row_text.lower()
+                        and "other than 1 & 2 above" not in row_text.lower()):
+                    try:                        
+                        reverse_charge['inward_reverse_charge_value'] = safe_float(clean_cell(row[1])) if row[1] and row[1] != "-" else 0.0
+                        reverse_charge['inward_reverse_charge_igst']  = safe_float(clean_cell(row[2])) if len(row) > 2 and row[2] and row[2] != "-" else 0.0
+                        reverse_charge['inward_reverse_charge_cgst']  = safe_float(clean_cell(row[3])) if len(row) > 3 and row[3] and row[3] != "-" else 0.0
+                        reverse_charge['inward_reverse_charge_sgst']  = safe_float(clean_cell(row[4])) if len(row) > 4 and row[4] and row[4] != "-" else 0.0
+                        reverse_charge['inward_reverse_charge_cess']  = safe_float(clean_cell(row[5])) if len(row) > 5 and row[5] and row[5] != "-" else 0.0
                         logger.info(f"Found reverse charge supplies: {reverse_charge}")
+                        # Add schema-compatible aliases for the Reverse Charge Supplies sheet
+                        reverse_charge['reverse_charge_supplies_value'] = reverse_charge.get('inward_reverse_charge_value', 0.0)
+                        reverse_charge['reverse_charge_supplies_igst']  = reverse_charge.get('inward_reverse_charge_igst',  0.0)
+                        reverse_charge['reverse_charge_supplies_cgst']  = reverse_charge.get('inward_reverse_charge_cgst',  0.0)
+                        reverse_charge['reverse_charge_supplies_sgst']  = reverse_charge.get('inward_reverse_charge_sgst',  0.0)
+                        reverse_charge['reverse_charge_supplies_cess']  = reverse_charge.get('inward_reverse_charge_cess',  0.0)
                         return reverse_charge
                     except (ValueError, TypeError, IndexError) as e:
                         logger.error(f"Error parsing reverse charge supplies: {str(e)}")
@@ -818,6 +835,12 @@ def parse_gstr3b(pdf_path):
         try:
             outward_supplies = extract_outward_supplies(tables)
             result.update(outward_supplies)
+            # Add schema aliases for Reverse Charge Supplies sheet
+            result['reverse_charge_supplies_value'] = outward_supplies.get('inward_reverse_charge_value', 0.0)
+            result['reverse_charge_supplies_igst']  = outward_supplies.get('inward_reverse_charge_igst',  0.0)
+            result['reverse_charge_supplies_cgst']  = outward_supplies.get('inward_reverse_charge_cgst',  0.0)
+            result['reverse_charge_supplies_sgst']  = outward_supplies.get('inward_reverse_charge_sgst',  0.0)
+            result['reverse_charge_supplies_cess']  = outward_supplies.get('inward_reverse_charge_cess',  0.0)
         except Exception as e:
             logger.error(f"Error extracting outward supplies: {str(e)}")
 
@@ -878,6 +901,19 @@ def parse_gstr3b(pdf_path):
         except Exception as e:
             logger.error(f"Error extracting payment details: {str(e)}")
 
+        result['igst_net_payable'] = result.get('igst_net_payable', 0.0) + result.get('rc_igst_net_payable', 0.0)
+        result['cgst_net_payable'] = result.get('cgst_net_payable', 0.0) + result.get('rc_cgst_net_payable', 0.0)
+        result['sgst_net_payable'] = result.get('sgst_net_payable', 0.0) + result.get('rc_sgst_net_payable', 0.0)
+        # NOTE: previously these lines overwrote igst_paid_cash / cgst_paid_cash
+        # / sgst_paid_cash (the "Other than Reverse Charge" 6.1(A) values) by
+        # adding the reverse-charge 6.1(B) amounts into them. That corrupted
+        # the "Other than Reverse Charge" sheet's cash figures (they should
+        # only reflect 6.1(A)). The combined total is kept under separate
+        # total_* keys for anything that needs the grand total instead.
+        result['total_igst_paid_cash'] = result.get('igst_paid_cash', 0.0) + result.get('rc_igst_paid_cash', 0.0)
+        result['total_cgst_paid_cash'] = result.get('cgst_paid_cash', 0.0) + result.get('rc_cgst_paid_cash', 0.0)
+        result['total_sgst_paid_cash'] = result.get('sgst_paid_cash', 0.0) + result.get('rc_sgst_paid_cash', 0.0)
+
         try:
             additional_fields = extract_additional_fields(tables)
             result.update(additional_fields)
@@ -920,8 +956,11 @@ def parse_gstr3b(pdf_path):
                 result.get('outward_taxable_value', 0),
                 result.get('zero_rated_value', 0),
                 result.get('nil_exempt_value', 0),
-                result.get('non_gst_value', 0),
-                result.get('inward_reverse_charge_value', 0)
+                result.get('non_gst_value', 0)
+                # NOTE: this field is documented as excluding inward reverse
+                # charge value, but previously included
+                # inward_reverse_charge_value in the sum anyway, inflating
+                # the total by the full Table 3.1(d) amount.
             ])
             result['total_itc_available_igst'] = sum([
                 result.get('import_goods_igst', 0),
@@ -933,7 +972,16 @@ def parse_gstr3b(pdf_path):
             result['total_tax_payable'] = sum([
                 result.get('igst_payable', 0),
                 result.get('cgst_payable', 0),
-                result.get('sgst_payable', 0)
+                result.get('sgst_payable', 0),
+                # NOTE: this field is documented as "sum of payable column in
+                # Table 6.1(A) and 6.1(B)" but previously only summed IGST/
+                # CGST/SGST, silently dropping both the reverse-charge (6.1B)
+                # payable amounts and the Cess payable row entirely.
+                result.get('cess_payable', 0),
+                result.get('rc_igst_payable', 0),
+                result.get('rc_cgst_payable', 0),
+                result.get('rc_sgst_payable', 0),
+                result.get('rc_cess_payable', 0),
             ])
         except Exception as e:
             logger.error(f"Error calculating summary statistics: {str(e)}")
@@ -950,7 +998,30 @@ def parse_gstr3b(pdf_path):
         missing = [k for k in expected_keys if k not in result or result[k] == 0.0]
         if missing:
             result['_extraction_warnings'] = f"Possibly missing: {missing}"
-    
+            result['total_outward_supplies_value'] = sum([
+                result.get('outward_taxable_value', 0),
+                result.get('zero_rated_value', 0),
+                result.get('nil_exempt_value', 0),
+                result.get('non_gst_value', 0)
+            ])
+            result['total_itc_available_igst'] = sum([
+                result.get('import_goods_igst', 0),
+                result.get('import_services_igst', 0),
+                result.get('reverse_charge_itc_igst', 0),
+                result.get('isd_igst', 0),
+                result.get('other_itc_igst', 0)
+            ])
+            result['total_tax_payable'] = sum([
+                result.get('igst_payable', 0),
+                result.get('cgst_payable', 0),
+                result.get('sgst_payable', 0),
+                result.get('cess_payable', 0),
+                result.get('rc_igst_payable', 0),
+                result.get('rc_cgst_payable', 0),
+                result.get('rc_sgst_payable', 0),
+                result.get('rc_cess_payable', 0),
+            ])
+
     return result
 
 def create_excel(parsed_data_list):

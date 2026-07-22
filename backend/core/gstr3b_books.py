@@ -14,15 +14,87 @@ logger = logging.getLogger(__name__)
 # ─── Recon row definitions ────────────────────────────────────────────────────
 
 RECON_ROWS = [
-    ("taxable_value", "Taxable Value (incl. Sales/Exports)"),
-    ("igst",          "IGST"),
-    ("cgst",          "CGST"),
-    ("sgst",          "SGST"),
-    ("cess",          "Cess"),
-    ("itc",           "ITC (Input Tax Credit)"),
-    ("rcm",           "RCM (Reverse Charge)"),
+    # Outward supplies
+    ("taxable_value",        "Taxable Value"),
+    ("zero_rated_value",     "Zero Rated Supplies"),
+    ("nil_rated_value",      "Nil Rated Supplies"),
+    ("igst_output",          "IGST Output"),
+    ("cgst_output",          "CGST Output"),
+    ("sgst_output",          "SGST Output"),
+    # RCM inward
+    ("rcm_taxable",          "RCM Taxable Value"),
+    ("rcm_igst",             "RCM IGST"),
+    ("rcm_cgst",             "RCM CGST"),
+    ("rcm_sgst",             "RCM SGST"),
+    # ITC available
+    ("itc_igst",             "ITC Available IGST"),
+    ("itc_cgst",             "ITC Available CGST"),
+    ("itc_sgst",             "ITC Available SGST"),
+    # ITC reversed
+    ("itc_reversed_igst",    "ITC Reversed IGST"),
+    ("itc_reversed_cgst",    "ITC Reversed CGST"),
+    ("itc_reversed_sgst",    "ITC Reversed SGST"),
+    # Ineligible ITC
+    ("ineligible_igst",      "Ineligible ITC IGST"),
+    ("ineligible_cgst",      "Ineligible ITC CGST"),
+    ("ineligible_sgst",      "Ineligible ITC SGST"),
+    # Net ITC
+    ("net_itc_igst",         "Net ITC IGST"),
+    ("net_itc_cgst",         "Net ITC CGST"),
+    ("net_itc_sgst",         "Net ITC SGST"),
+    # ITC utilised
+    ("itc_util_igst",        "ITC Utilised IGST"),
+    ("itc_util_cgst",        "ITC Utilised CGST"),
+    ("itc_util_sgst",        "ITC Utilised SGST"),
+    # Net tax payable / cash
+    ("net_tax_payable",      "Net Tax Payable"),
+    ("cash_paid_igst",       "Cash Paid IGST"),
+    ("cash_paid_cgst",       "Cash Paid CGST"),
+    ("cash_paid_sgst",       "Cash Paid SGST"),
+    ("interest_igst",        "Interest IGST"),
+    ("interest_cgst",        "Interest CGST"),
+    ("interest_sgst",        "Interest SGST"),
+    ("late_fee_cgst",        "Late Fee CGST"),
+    ("late_fee_sgst",        "Late Fee SGST"),
 ]
-
+# Groups RECON_ROWS keys into the same sections as the Books template,
+# so the Excel export can mirror the UI / template layout.
+DISPLAY_SECTIONS = [
+    ("Tax on Outward Supply", [
+        ("taxable_value", "Taxable Value"), ("zero_rated_value", "Zero Rated"),
+        ("nil_rated_value", "Nil Rated"), ("igst_output", "IGST"),
+        ("cgst_output", "CGST"), ("sgst_output", "SGST"),
+    ]),
+    ("RCM (Inward Reverse Charge)", [
+        ("rcm_taxable", "Taxable Value"), ("rcm_igst", "IGST"),
+        ("rcm_cgst", "CGST"), ("rcm_sgst", "SGST"),
+    ]),
+    ("ITC Available", [
+        ("itc_igst", "IGST"), ("itc_cgst", "CGST"), ("itc_sgst", "SGST"),
+    ]),
+    ("ITC Reversed", [
+        ("itc_reversed_igst", "IGST"), ("itc_reversed_cgst", "CGST"), ("itc_reversed_sgst", "SGST"),
+    ]),
+    ("Ineligible ITC", [
+        ("ineligible_igst", "IGST"), ("ineligible_cgst", "CGST"), ("ineligible_sgst", "SGST"),
+    ]),
+    ("Net ITC Available", [
+        ("net_itc_igst", "IGST"), ("net_itc_cgst", "CGST"), ("net_itc_sgst", "SGST"),
+    ]),
+    ("ITC Utilised", [
+        ("itc_util_igst", "IGST"), ("itc_util_cgst", "CGST"), ("itc_util_sgst", "SGST"),
+    ]),
+    ("Net Tax Payable", [("net_tax_payable", "Total")]),
+    ("Amount Paid in Cash", [
+        ("cash_paid_igst", "IGST"), ("cash_paid_cgst", "CGST"), ("cash_paid_sgst", "SGST"),
+    ]),
+    ("Interest", [
+        ("interest_igst", "IGST"), ("interest_cgst", "CGST"), ("interest_sgst", "SGST"),
+    ]),
+    ("Late Fee", [
+        ("late_fee_cgst", "CGST"), ("late_fee_sgst", "SGST"),
+    ]),
+]
 TOLERANCE_MATCH  = 1.0
 TOLERANCE_MINOR  = 100.0
 
@@ -37,19 +109,53 @@ def _status(diff: float) -> str:
 def normalize_gstr3b(g3b: dict) -> dict:
     def sf(v):
         try:
-            return round(float(str(v).replace(",","") or 0), 2)
+            return round(float(str(v).replace(",", "") or 0), 2)
         except Exception:
             return 0.0
-    taxable = sf(g3b.get("outward_taxable_value", 0)) + sf(g3b.get("zero_rated_value", 0))
+
     return {
-        "sales":         taxable,
-        "taxable_value": taxable,
-        "igst":          sf(g3b.get("outward_igst", 0)) + sf(g3b.get("zero_rated_igst", 0)),
-        "cgst":          sf(g3b.get("outward_cgst", 0)),
-        "sgst":          sf(g3b.get("outward_sgst", 0)),
-        "cess":          sf(g3b.get("outward_cess", 0)),
-        "itc":           sf(g3b.get("other_itc_igst", 0)) + sf(g3b.get("other_itc_cgst", 0)) + sf(g3b.get("other_itc_sgst", 0)),
-        "rcm":           sf(g3b.get("inward_reverse_charge_igst", 0)) + sf(g3b.get("inward_reverse_charge_cgst", 0)) + sf(g3b.get("inward_reverse_charge_sgst", 0)),
+        # Outward
+        "taxable_value":     sf(g3b.get("outward_taxable_value", 0)),
+        "zero_rated_value":  sf(g3b.get("zero_rated_value", 0)),
+        "nil_rated_value":   sf(g3b.get("nil_exempt_value", 0)),
+        "igst_output":       sf(g3b.get("outward_igst", 0)),
+        "cgst_output":       sf(g3b.get("outward_cgst", 0)),
+        "sgst_output":       sf(g3b.get("outward_sgst", 0)),
+        # RCM
+        "rcm_taxable":       sf(g3b.get("inward_reverse_charge_value", 0)),
+        "rcm_igst":          sf(g3b.get("inward_reverse_charge_igst", 0)),
+        "rcm_cgst":          sf(g3b.get("inward_reverse_charge_cgst", 0)),
+        "rcm_sgst":          sf(g3b.get("inward_reverse_charge_sgst", 0)),
+        # ITC available
+        "itc_igst":          sf(g3b.get("other_itc_igst", 0)) + sf(g3b.get("import_goods_igst", 0)) + sf(g3b.get("import_services_igst", 0)) + sf(g3b.get("isd_igst", 0)),
+        "itc_cgst":          sf(g3b.get("other_itc_cgst", 0)) + sf(g3b.get("import_goods_cgst", 0)) + sf(g3b.get("import_services_cgst", 0)) + sf(g3b.get("isd_cgst", 0)),
+        "itc_sgst":          sf(g3b.get("other_itc_sgst", 0)) + sf(g3b.get("import_goods_sgst", 0)) + sf(g3b.get("import_services_sgst", 0)) + sf(g3b.get("isd_sgst", 0)),
+        # ITC reversed
+        "itc_reversed_igst": sf(g3b.get("rules_igst", 0)) + sf(g3b.get("others_igst", 0)),
+        "itc_reversed_cgst": sf(g3b.get("rules_cgst", 0)) + sf(g3b.get("others_cgst", 0)),
+        "itc_reversed_sgst": sf(g3b.get("rules_sgst", 0)) + sf(g3b.get("others_sgst", 0)),
+        # Ineligible ITC
+        "ineligible_igst":   sf(g3b.get("ineligible_itc_igst", 0)),
+        "ineligible_cgst":   sf(g3b.get("ineligible_itc_cgst", 0)),
+        "ineligible_sgst":   sf(g3b.get("ineligible_itc_sgst", 0)),
+        # Net ITC
+        "net_itc_igst":      sf(g3b.get("net_itc_igst", 0)),
+        "net_itc_cgst":      sf(g3b.get("net_itc_cgst", 0)),
+        "net_itc_sgst":      sf(g3b.get("net_itc_sgst", 0)),
+        # ITC utilised (from payment table)
+        "itc_util_igst":     sf(g3b.get("igst_paid_itc_igst", 0)),
+        "itc_util_cgst":     sf(g3b.get("cgst_paid_itc_cgst", 0)),
+        "itc_util_sgst":     sf(g3b.get("sgst_paid_itc_sgst", 0)),
+        # Net tax payable and cash paid
+        "net_tax_payable":   sf(g3b.get("igst_net_payable", 0)) + sf(g3b.get("cgst_net_payable", 0)) + sf(g3b.get("sgst_net_payable", 0)),
+        "cash_paid_igst":    sf(g3b.get("igst_paid_cash", 0)),
+        "cash_paid_cgst":    sf(g3b.get("cgst_paid_cash", 0)),
+        "cash_paid_sgst":    sf(g3b.get("sgst_paid_cash", 0)),
+        "interest_igst":     sf(g3b.get("igst_interest", 0)),
+        "interest_cgst":     sf(g3b.get("cgst_interest", 0)),
+        "interest_sgst":     sf(g3b.get("sgst_interest", 0)),
+        "late_fee_cgst":     sf(g3b.get("cgst_late_fee", 0)),
+        "late_fee_sgst":     sf(g3b.get("sgst_late_fee", 0)),
     }
 # ─── Per-period reconciliation ────────────────────────────────────────────────
 
@@ -294,7 +400,62 @@ def _sheet_tax(ws, monthly: list):
     for ci, w in enumerate([16] + [14]*len(fields) + [18], 1):
         _w(ws, ci, w)
 
+def _sheet_books_format(ws, monthly: list):
+    """Section-based layout matching the Books template / UI — each field
+    gets 3 sub-columns: Books, GSTR-3B, Difference."""
+    ws.freeze_panes = "B4"
 
+    # Row 1: section headers, Row 2: field headers, Row 3: Books/3B/Diff
+    ws.cell(1, 1, "Month")
+    ws.merge_cells(start_row=1, start_column=1, end_row=3, end_column=1)
+
+    col = 2
+    for section_label, fields in DISPLAY_SECTIONS:
+        sec_start = col
+        for field_key, field_label in fields:
+            field_start = col
+            ws.cell(2, col, field_label)
+            ws.merge_cells(start_row=2, start_column=col, end_row=2, end_column=col + 2)
+            ws.cell(3, col, "Books"); ws.cell(3, col + 1, "GSTR-3B"); ws.cell(3, col + 2, "Diff")
+            col += 3
+        ws.cell(1, sec_start, section_label)
+        ws.merge_cells(start_row=1, start_column=sec_start, end_row=1, end_column=col - 1)
+
+    total_cols = col - 1
+    for r in (1, 2, 3):
+        for ci in range(1, total_cols + 1):
+            c = ws.cell(r, ci)
+            c.font = _hfont()
+            c.fill = _HEADER
+            c.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+            c.border = _border()
+
+    row = 4
+    for p in monthly:
+        row_by_key = {r["description"]: r for r in p["rows"]}
+        # RECON_ROWS description text is the lookup key used in p["rows"]
+        desc_by_field_key = {key: desc for key, desc in RECON_ROWS}
+        ws.cell(row, 1, p["period"])
+        col = 2
+        for section_label, fields in DISPLAY_SECTIONS:
+            for field_key, field_label in fields:
+                desc = desc_by_field_key.get(field_key)
+                r = row_by_key.get(desc, {})
+                bv = r.get("books", 0.0); gv = r.get("gstr3b", 0.0); dv = r.get("difference", 0.0)
+                status = r.get("status", "Match")
+                fill = _status_fill(status)
+                ws.cell(row, col, bv); ws.cell(row, col + 1, gv); ws.cell(row, col + 2, dv)
+                for cc in range(col, col + 3):
+                    ws.cell(row, cc).fill = fill
+                    ws.cell(row, cc).border = _border()
+                    _num(ws.cell(row, cc))
+                col += 3
+        ws.cell(row, 1).border = _border()
+        row += 1
+
+    ws.column_dimensions["A"].width = 12
+    for ci in range(2, total_cols + 1):
+        ws.column_dimensions[get_column_letter(ci)].width = 11
 def _sheet_exceptions(ws, exceptions: list):
     if not exceptions:
         ws.append(["No mismatches — all periods matched."])
@@ -371,6 +532,8 @@ def generate_gstr3b_books_excel(
 
     ws3 = wb.create_sheet("Tax Comparison")
     _sheet_tax(ws3, result["monthly"])
+    ws2b = wb.create_sheet("Books Format")
+    _sheet_books_format(ws2b, result["monthly"])
 
     ws4 = wb.create_sheet("Exceptions")
     _sheet_exceptions(ws4, result["exceptions"])

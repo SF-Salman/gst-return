@@ -707,7 +707,22 @@ async def download_books_template():
     except Exception as e:
         logger.exception("Failed to generate Books template")
         return JSONResponse(status_code=500, content={"error": str(e)})       
-        
+
+@app.get("/api/reconcile/gstr3b-books/sample")
+async def download_books_sample():
+    """Download a filled-in sample Books workbook (same layout as the template)."""
+    try:
+        from backend.core.books_extractor import generate_books_sample
+        content = generate_books_sample()
+        return Response(
+            content=content,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=BOOKS_DATA_Sample.xlsx"}
+        )
+    except Exception as e:
+        logger.exception("Failed to generate Books sample")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 @app.post("/api/reconcile/gstr3b-books")
 async def reconcile_gstr3b_books(
     gstr3b_files: List[UploadFile] = File(...),
@@ -1126,4 +1141,3 @@ try:
         logger.warning(f"Frontend dist not found at {DIST_DIR}; static SPA serving disabled.")
 except Exception as e:
     logger.exception(f"Failed to mount StaticFiles for frontend: {e}")
-    
