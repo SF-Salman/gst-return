@@ -1,0 +1,168 @@
+FORM GSTR-1
+[See rule 59(1)]
+Details of outward supplies of goods or services
+Financial year 2025-26
+Tax period April
+1 GSTIN 07AAACR7111E1ZT
+2 (a) Legal name of the registered person RINAC INDIA LIMITED
+(b) Trade name if any RINAC INDIA LIMITED
+(c) ARN AA070425185976L
+(d) ARN date 07/05/2025
+No. of Document
+Description Value (₹) Integrated Tax (₹) Central Tax (₹) State/UT Tax (₹) Cess (₹)
+records Type
+4A - Taxable outward supplies made to registered persons (other than reverse chNarge supplies) including supplies made through e-commerce operator attracting TCS - B2B Regular
+Total 6 Invoice 12,65,764.13 2,14,820.30 6,508.62 6,508.62 0.00
+4B - Taxable outward supplies made to registered persons attracting tax on reverse charge - B2B Reverse charge
+Total 0 Invoice 0.00 0.00 0.00 0.00 0.00
+5 - Taxable outward inter-state supplies made to unregistered persons (where invoice value is more than Rs. 1 lakh) including supplies made through e-commerce operator, rate wise - B2CL (Large)
+Total 0 Invoice 0.00 0.00 0.00
+6A – Exports (with/without payment)
+Total 0 Invoice 0.00 0.00 0.00
+- EXPWP 0 Invoice 0.00 0.00 0.00
+- EXPWOP 0 Invoice 0.00
+6B - Supplies made to SEZ unit or SEZ developer - SEZWP/SEZWOP
+Total 0 Invoice 0.00 0.00 0.00
+- SEZWP 0 Invoice 0.00 0.00 0.00
+- SEZWOP 0 Invoice 0.00
+6C - Deemed Exports – DE
+Total 0 Invoice 0.00 0.00 0.00 0.00 0.00
+7- Taxable supplies (Net of debit and credit notes) to unregistered persons (other than the supplies covered in Table 5) including supplies made through e-commerce operator attracting TCS - B2CS (Others)
+No. of Document
+Description Value (₹) Integrated Tax (₹) Central Tax (₹) State/UT Tax (₹) Cess (₹)
+records Type
+Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+8 - Nil rated, exempted and non GST outward supplies
+Total 0.00
+- Nil 0.00
+- Exempted 0.00
+- Non-GST 0.00
+9A - Amendment to taxable outward supplies made to registered person in returns of earlier tax periods in table 4 - B2B Regular
+Amended amount - Total 0 Invoice 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0.00 0.00 0.00 0.00 0.00
+9A - Amendment to taxable outward supplies made to registered person in returns of earlier tax periods in table 4 - B2B Reverse charge
+Amended amount - Total 0 Invoice 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0.00 0.00 0.00 0.00 0.00
+9A - Amendment to Inter-State supplies made to unregistered person (where invoice value is more than Rs. 1 lakh) in returns of earlier tax periods in table 5 - B2CL (Large)
+Amended amount - Total 0 Invoice 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0.00 0.00 0.00
+9A - Amendment to Export supplies in returns of earlier tax periods in table 6A (EXPWP/EXPWOP)
+Amended amount - Total 0 Invoice 0.00 0.00 0.00
+Net differential amount (Amended - Original) - Total 0.00 0.00 0.00
+- EXPWP 0 Invoice 0.00 0.00 0.00
+- EXPWOP 0 Invoice 0.00
+9A - Amendment to supplies made to SEZ units or SEZ developers in returns of earlier tax periods in table 6B (SEZWP/SEZWOP)
+Amended amount - Total 0 Invoice 0.00 0.00 0.00
+Net differential amount (Amended - Original) - Total 0.00 0.00 0.00
+- SEZWP 0 Invoice 0.00 0.00 0.00
+- SEZWOP 0 Invoice 0.00
+9A - Amendment to Deemed Exports in returns of earlier tax periods in table 6C (DE)
+Amended amount - Total 0 Invoice 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0.00 0.00 0.00 0.00 0.00
+9B - Credit/Debit Notes (Registered) – CDNR
+No. of Document
+Description Value (₹) Integrated Tax (₹) Central Tax (₹) State/UT Tax (₹) Cess (₹)
+records Type
+Total - Net off debit/credit notes (Debit notes - Credit notes) 0 Note 0.00 0.00 0.00 0.00 0.00
+Credit / Debit notes issued to registered person for taxable outward supplies in table 4 other than table 6 - B2B Regular
+Net Total (Debit notes – Credit notes) 0 Note 0.00 0.00 0.00 0.00 0.00
+Credit / Debit notes issued to registered person for taxable outward supplies in table 4 other than table 6 - B2B Reverse charge
+Net Total (Debit notes – Credit notes) 0 Note 0.00 0.00 0.00 0.00 0.00
+Credit / Debit notes issued to registered person for taxable outward supplies in table 6B - SEZWP/SEZWOP
+Net Total (Debit notes – Credit notes) 0 Note 0.00 0.00 0.00
+Credit / Debit notes issued to registered person for taxable outward supplies in table 6C – DE
+Net Total (Debit notes – Credit notes) 0 Note 0.00 0.00 0.00 0.00 0.00
+9B - Credit/Debit Notes (Unregistered) – CDNUR
+Total - Net off debit/credit notes (Debit notes - Credit notes) 0 Note 0.00 0.00 0.00
+Unregistered Type
+- B2CL 0 Note 0.00 0.00 0.00
+- EXPWP 0 NNote 0.00 0.00 0.00
+- EXPWOP 0 Note 0.00
+9C - Amended Credit/Debit Notes (Registered) - CDNRA
+Amended amount - Total 0 Note 0.00 0.00 0.00 0.00 0.00
+Net Differential amount (Net Amended Debit notes - Net 0.00 0.00 0.00 0.00 0.00
+Amended Credit notes) - Total
+Amended Credit / Debit notes issued to registered person for taxable outward supplies in table 4 other than table 6 - B2B Regular
+Net total (Net Amended Debit notes - Net Amended 0 Note 0.00 0.00 0.00 0.00 0.00
+Credit notes)
+Amended Credit / Debit notes issued to registered person for taxable outward supplies in table 4 other than table 6 - B2B Reverse charge
+Net total (Net Amended Debit notes - Net Amended 0 Note 0.00 0.00 0.00 0.00 0.00
+Credit notes)
+Amended Credit / Debit notes issued to registered person for taxable outward supplies in table 6B - SEZWP/SEZWOP
+Net total (Net Amended Debit notes - Net Amended 0 Note 0.00 0.00 0.00
+Credit notes)
+Amended Credit / Debit notes issued to registered person for taxable outward supplies in table 6C – DE
+Net total (Net Amended Debit notes - Net Amended 0 Note 0.00 0.00 0.00 0.00 0.00
+Credit notes)
+9C - Amended Credit/Debit Notes (Unregistered) - CDNURA
+Amended amount - Total 0 Note 0.00 0.00 0.00
+Net Differential amount (Net Amended Debit notes - Net 0.00 0.00 0.00
+Amended Credit notes) - Total
+Unregistered Type
+No. of Document
+Description Value (₹) Integrated Tax (₹) Central Tax (₹) State/UT Tax (₹) Cess (₹)
+records Type
+- B2CL 0 Note 0.00 0.00 0.00
+- EXPWP 0 Note 0.00 0.00 0.00
+- EXPWOP 0 Note 0.00
+10 - Amendment to taxable outward supplies made to unregistered person in returns for earlier tax periods in table 7 including supplies made through e-commerce operator attracting TCS - B2C (Others)
+Amended amount - Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0.00 0.00 0.00 0.00 0.00
+11A(1), 11A(2) - Advances received for which invoice has not been issued (tax amount to be added to the output tax liability) (Net of refund vouchers, if any)
+Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+11B(1), 11B(2) - Advance amount received in earlier tax period and adjusted against the supplies being shown in this tax period in Table Nos. 4, 5, 6 and 7 (Net of refund vouchers, if any)
+Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+11A - Amendment to advances received in returns for earlier tax periods in tableN 11A(1), 11A(2) (Net of refund vouchers, if any)
+Amended amount - Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+Total 0.00 0.00 0.00 0.00 0.00
+11B - Amendment to advances adjusted in returns for earlier tax periods in table 11B(1), 11B(2) (Net of refund vouchers, if any)
+Amended amount - Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+Total 0.00 0.00 0.00 0.00 0.00
+12 - HSN-wise summary of outward supplies
+Total 5 NA 12,65,764.13 2,14,820.30 6,508.62 6,508.62 0.00
+13 - Documents issued
+Net issued documents 6 All Documents
+14 - Supplies made through E-Commerce Operators
+Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+(a) Liable to collect tax u/s 52 0 Net Value 0.00 0.00 0.00 0.00 0.00
+(b) Liable to pay tax u/s 9(5) 0 Net Value 0.00 0.00 0.00 0.00 0.00
+14A - Amended Supplies made through E-Commerce Operators
+Amended amount – Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0 Net Value 0.00 0.00 0.00 0.00 0.00
+(a) Liable to collect tax u/s 52
+No. of Document
+Description Value (₹) Integrated Tax (₹) Central Tax (₹) State/UT Tax (₹) Cess (₹)
+records Type
+Amended amount – Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0 Net Value 0.00 0.00 0.00 0.00 0.00
+(b) Liable to pay tax u/s 9(5)
+Amended amount – Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0 Net Value 0.00 0.00 0.00 0.00 0.00
+15 - Supplies U/s 9(5)
+Total 0 Document/Net 0.00 0.00 0.00 0.00 0.00
+Value A
+- For Registered Recipients 0 Document 0.00 0.00 0.00 0.00 0.00
+- Regular 0 Document 0.00 0.00 0.00 0.00 0.00
+- DE 0 Document 0.00 0.00 0.00 0.00 0.00
+- SEZWP 0 Document 0.00 0.00 0.00
+- SEZWOP 0 Document 0.00
+- For Unregistered Recipient 0 Net Value 0.00 0.00 0.00 0.00 0.00
+15A (I) - Amended Supplies U/s 9(5) – For Registered Recipients
+Amended amount - Total 0 Document 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0 Document 0.00 0.00 0.00 0.00 0.00
+- Regular 0 Document 0.00 0.00 0.00 0.00 0.00
+- DE 0 Document 0.00 0.00 0.00 0.00 0.00
+- SEZWP 0 Document 0.00 0.00 0.00
+- SEZWOP 0 Document 0.00
+15A (II) - Amended Supplies U/s 9(5) – For Unregistered Recipients
+Amended amount - Total 0 Net Value 0.00 0.00 0.00 0.00 0.00
+Net differential amount (Amended - Original) 0 Net Value 0.00 0.00 0.00 0.00 0.00
+Total Liability (Outward supplies other than Reverse charge) 12,65,764.13 2,14,820.30 6,508.62 6,508.62 0.00
+Verification:
+I hereby solemnly affirm and declare that the information given herein above is true and correct to the best of my knowledge and belief and nothing has been concealed there from and in case
+of any reduction in output tax liability the benefit thereof has been/ will be passed on to the recipient of supply.
+Date: 07/05/2025
+Signature
+Name of Authorized Signatory
+ANIL RAUT
+Designation/Status: ASSISTANT MANAGER

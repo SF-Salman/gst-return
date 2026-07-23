@@ -354,7 +354,29 @@ def extract_eligible_itc(tables):
                 if "itc reversed" in row_text:
                     return eligible_itc
     return eligible_itc
-
+def extract_isd_itc_fallback(all_text):
+    """
+    Fallback for Table 4A(4) — Inward supplies from ISD.
+    pdfplumber's extract_tables() unreliably splits this row because the
+    "FILED" watermark sits directly in front of "(4)" in the source PDF,
+    corrupting the column boundaries pdfplumber detects for this row only.
+    Anchoring on "(4)" in the plain extracted text (unaffected by table-grid
+    corruption) is far more reliable — same approach as the 3.1(d) fix above.
+    """
+    isd = {}
+    match = re.search(
+        r'\(4\)\s*Inward\s+supplies\s+from\s+ISD\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        all_text, re.IGNORECASE
+    )
+    if match:
+        isd['isd_igst'] = safe_float(clean_cell(match.group(1)))
+        isd['isd_cgst'] = safe_float(clean_cell(match.group(2)))
+        isd['isd_sgst'] = safe_float(clean_cell(match.group(3)))
+        isd['isd_cess'] = safe_float(clean_cell(match.group(4)))
+        logger.info(f"Extracted ISD via text fallback: {isd}")
+    else:
+        logger.warning("ISD text fallback also failed to match")
+    return isd
 def extract_itc_reversed(tables):
     itc_reversed = {}
     itc_reversed_section = False
@@ -861,6 +883,16 @@ def parse_gstr3b(pdf_path):
             result.update(eligible_itc)
         except Exception as e:
             logger.error(f"Error extracting eligible ITC: {str(e)}")
+
+        # Fallback: table-based ISD extraction is unreliable due to the
+        # "FILED" watermark corrupting this row's column boundaries.
+        if not result.get('isd_igst') and not result.get('isd_cgst') and not result.get('isd_sgst'):
+            try:
+                isd_fallback = extract_isd_itc_fallback(all_text)
+                for k, v in isd_fallback.items():
+                    result[k] = v
+            except Exception as e:
+                logger.error(f"Error in ISD fallback extraction: {str(e)}")
 
         try:
             itc_reversed = extract_itc_reversed(tables)

@@ -115,7 +115,10 @@ def extract_gstr1_data(pdf_path):
         text = re.sub(r'\n[A-Z]\n', '\n', text)
         text = re.sub(r'IP Address:.*?\nNo\. of Document\nDescription.*?records Type\n', '', text, flags=re.DOTALL)
         text = clean_text(text)
-        
+        os.makedirs("extracted_texts", exist_ok=True)
+        filename = os.path.basename(pdf_path).replace(".pdf", ".txt")
+        with open(os.path.join("extracted_texts", filename), "w", encoding="utf-8") as f:
+            f.write(text)
         # Extract header fields with enhanced patterns
         data['FileName'] = os.path.basename(pdf_path)
         data['GSTIN'] = extract_with_fallback_patterns(text, [
