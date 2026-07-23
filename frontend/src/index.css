@@ -1,11 +1,53 @@
 @import "tailwindcss";
-@custom-variant dark (&:where(.dark, .dark *));
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@config "../tailwind.config.js";
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
 
-html, body, #root {
+:root {
+  --color-bg: #f8f7f4;
+  --color-surf: #ffffff;
+  --color-sub: #f0ebe3;
+  --color-tx: #1a1a1a;
+  --color-tx2: #4a4a4a;
+  --color-tx3: #8a7d70;
+  --color-border: #e3dcd3;
+  --color-border2: #d1c7bc;
+  --color-acc: #9a3324;
+  --color-ok: #2d5a27;
+  --color-warn: #b45309;
+  --color-err: #991b1b;
+  --color-info: #1e40af;
+}
+
+.dark, [data-theme='dark'] {
+  --color-bg: #121212;
+  --color-surf: #1e1e1e;
+  --color-sub: #2a2a2a;
+  --color-tx: #e0e0e0;
+  --color-tx2: #b0b0b0;
+  --color-tx3: #707070;
+  --color-border: #333333;
+  --color-border2: #444444;
+  --color-acc: #e57373;
+  --color-ok: #81c784;
+  --color-warn: #ffb74d;
+  --color-err: #e57373;
+  --color-info: #e57373;
+}
+
+  html, body, #root {
   height: 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+  body, #root {
+  margin: 0;
+  display: block;
 }
 
 body {
+  @apply bg-bg text-tx antialiased;
   font-family: 'Inter', 'Poppins', 'Manrope', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
 }
 
@@ -15,12 +57,37 @@ body {
   }
 }
 
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer;
+  }
+  .btn-acc {
+    @apply bg-acc text-white hover:opacity-90 shadow-sm;
+  }
+  .btn-ghost {
+    @apply bg-transparent border border-border text-tx2 hover:bg-sub hover:text-tx;
+  }
+
+  .pill {
+    @apply font-mono text-[10px] px-2 py-0.5 rounded-full font-medium whitespace-nowrap;
+  }
+  .pill-hi { @apply bg-err/10 text-err; }
+  .pill-md { @apply bg-warn/10 text-warn; }
+  .pill-lo { @apply bg-ok/10 text-ok; }
+  .pill-inf { @apply bg-info/10 text-info; }
+}
+
 /* Custom scrollbar utilities */
 .scrollbar-thin { scrollbar-width: thin; }
 .scrollbar-thin::-webkit-scrollbar { height: 8px; width: 8px; }
 .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
-.scrollbar-thumb-neutral-300::-webkit-scrollbar-thumb { background-color: #d4d4d4; border-radius: 9999px; }
-.dark .scrollbar-thumb-neutral-300::-webkit-scrollbar-thumb { background-color: #404040; }
+.scrollbar-thumb-neutral-300::-webkit-scrollbar-thumb { background-color: var(--color-border2); border-radius: 9999px; }
+.dark .scrollbar-thumb-neutral-300::-webkit-scrollbar-thumb { background-color: var(--color-border2); }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: var(--color-border); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background-color: var(--color-border2); }
 
 /* Numeric tabular figures */
 @layer utilities {

@@ -12,6 +12,18 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+def clean_text(text):
+    """Remove watermark letter artifacts embedded in GSTR-1 PDFs.
+    The FINAL watermark letters (L, A, N, I, F) appear as standalone
+    characters on their own lines OR embedded before digits e.g. 'I0', 'F2'.
+    Strip both forms before running any regex patterns.
+    """
+    # Remove standalone watermark lines (single uppercase letter alone on a line)
+    text = re.sub(r'(?m)^[LANIF]\s*$', '', text)
+    # Remove watermark letters embedded before digits e.g. 'I0' -> '0', 'F2' -> '2'
+    text = re.sub(r'\b[LANIF](\d)', r'\1', text)
+    return text
+
 def safe_float(value):
     """Safely convert value to float with error handling."""
     try:
@@ -100,7 +112,13 @@ def extract_gstr1_data(pdf_path):
         # Clean up repeated lines like IP Address and FINAL
         text = re.sub(r'IP Address:.*\n', '', text)
         text = re.sub(r'FINAL\n', '', text)
-        
+        text = re.sub(r'\n[A-Z]\n', '\n', text)
+        text = re.sub(r'IP Address:.*?\nNo\. of Document\nDescription.*?records Type\n', '', text, flags=re.DOTALL)
+        text = clean_text(text)
+        os.makedirs("extracted_texts", exist_ok=True)
+        filename = os.path.basename(pdf_path).replace(".pdf", ".txt")
+        with open(os.path.join("extracted_texts", filename), "w", encoding="utf-8") as f:
+            f.write(text)
         # Extract header fields with enhanced patterns
         data['FileName'] = os.path.basename(pdf_path)
         data['GSTIN'] = extract_with_fallback_patterns(text, [
@@ -194,13 +212,14 @@ def extract_gstr1_data(pdf_path):
         
         # 9B - Credit/Debit Notes (Unregistered)
         data.update(extract_table_9b_values(text))
-        
+        data.update(extract_table_9b_registered_values(text))
+        data.update(extract_table_9b_cdnur_values(text))
         # 9C - Amended Credit/Debit Notes
-        data.update(extract_table_9c_values(text))
+        pass
         
         # 10 - Amendment to B2C Supplies
         data.update(extract_table_10_values(text))
-        
+                
         # 11A and 11B - Advances and Adjustments
         data.update(extract_table_11_values(text))
         
@@ -233,15 +252,55 @@ def extract_gstr1_data(pdf_path):
         data.update(summary_stats)
         
         # Validate extracted data
+        # Validate extracted data
         validation_results = validate_extracted_data(data)
         data.update(validation_results)
         
+
+        # Add defaults for missing values (important for PDF alignment)
+        for key, value in data.items():
+            if value is None:             
+                data[key] = ""
+        
+                # Ensure all keys expected by gstr1_vs_3b.py exist (prevents KeyError)
+        reconciliation_keys = [
+            '4A_Value', '4A_IGST', '4A_CGST', '4A_SGST', '4A_Cess',
+            '6B_Value', '6B_IGST', '6B_Cess',
+            '6C_Value', '6C_IGST', '6C_CGST', '6C_SGST', '6C_Cess',
+            '5_Value', '5_IGST', '5_Cess',
+            '7_Value', '7_IGST', '7_CGST', '7_SGST', '7_Cess',
+            '8_Total',
+            # 9A Net Diffs
+            '9A_B2BRegular_NetDiff_Value', '9A_B2BRegular_NetDiff_IGST',
+            '9A_B2BRegular_NetDiff_CGST', '9A_B2BRegular_NetDiff_SGST',
+            '9A_DE_NetDiff_Value', '9A_DE_NetDiff_IGST', '9A_DE_NetDiff_CGST',
+            '9A_B2CL_NetDiff_Value', '9A_B2CL_NetDiff_IGST',
+            '9A_EXPWP_NetDiff_Value', '9A_EXPWP_NetDiff_IGST',
+            '9A_SEZWP_NetDiff_Value', '9A_SEZWP_NetDiff_IGST',
+            # 9B CDNR
+            '9B_CDNR_B2BRegular_Value', '9B_CDNR_B2BRegular_IGST',
+            '9B_CDNR_B2BRegular_CGST', '9B_CDNR_B2BRegular_SGST',
+            '9B_CDNR_SEZ_Value', '9B_CDNR_SEZ_IGST',
+            '9B_CDNR_DE_Value', '9B_CDNR_DE_IGST', '9B_CDNR_DE_CGST',
+            '9B_CDNUR_B2CL_Value', '9B_CDNUR_B2CL_IGST',
+            # 10 Amendments
+            '10_NetDiff_Value', '10_NetDiff_IGST', '10_NetDiff_CGST',
+            '10_NetDiff_SGST',
+        ]
+        for key in reconciliation_keys:
+            data.setdefault(key, "")
+
+        # Ensure required fields always exist
+        data.setdefault('processing_status', 'SUCCESS')
+        data.setdefault('parsing_error', "")
+
         logger.info(f"Successfully extracted data from {pdf_path}")
         logger.info(f"Total fields extracted: {len(data)}")
         
     except Exception as e:
         logger.error(f"Error processing {pdf_path}: {str(e)}")
         logger.error(traceback.format_exc())
+        data['processing_status'] = 'FAILED'
         data['parsing_error'] = str(e)
         data['FileName'] = os.path.basename(pdf_path)
         
@@ -253,9 +312,9 @@ def extract_table_4a_values(text):
     
     # Multiple patterns for better extraction
     patterns = [
-        r'4A\s*-\s*Taxable\s+outward\s+supplies.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'4A.*?B2B\s+Regular.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'4A.*?Total.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'4A\s*-\s*Taxable\s+outward\s+supplies.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'4A.*?B2B\s+Regular.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'4A.*?Total.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in patterns:
@@ -283,9 +342,9 @@ def extract_table_4b_values(text):
     data = {}
     
     patterns = [
-        r'4B\s*-\s*Taxable\s+outward\s+supplies.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'4B.*?B2B\s+Reverse\s+charge.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'4B.*?Total.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'4B\s*-\s*Taxable\s+outward\s+supplies.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'4B.*?B2B\s+Reverse\s+charge.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'4B.*?Total.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in patterns:
@@ -313,9 +372,9 @@ def extract_table_5_values(text):
     data = {}
     
     patterns = [
-        r'5\s*-\s*Taxable\s+outward\s+inter-state\s+supplies.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'5.*?B2CL.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'5.*?Total.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'5\s*-\s*Taxable\s+outward\s+inter-state\s+supplies.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'5.*?B2CL.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'5.*?Total.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in patterns:
@@ -340,9 +399,9 @@ def extract_table_6a_values(text):
     
     # Total exports with multiple patterns
     total_patterns = [
-        r'6A\s*–?\s*Exports.*?\nTotal\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'6A.*?Exports.*?\nTotal\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'6A.*?Total\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'6A\s*–?\s*Exports.*?\nTotal\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'6A.*?Exports.*?\nTotal\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'6A.*?Total\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in total_patterns:
@@ -361,8 +420,8 @@ def extract_table_6a_values(text):
     
     # Export with payment (EXPWP)
     expwp_patterns = [
-        r'-?\s*EXPWP\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'EXPWP.*?\n.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'-?\s*EXPWP\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'EXPWP.*?\n.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in expwp_patterns:
@@ -380,8 +439,8 @@ def extract_table_6a_values(text):
     
     # Export without payment (EXPWOP)
     expwop_patterns = [
-        r'-?\s*EXPWOP\s+\d+\s+Invoice\s+([\d,.]+)',
-        r'EXPWOP.*?\n.*?Invoice\s+([\d,.]+)'
+        r'-?\s*EXPWOP\s+\d+\s+Invoice\s+(-?[\d,.]+)',
+        r'EXPWOP.*?\n.*?Invoice\s+(-?[\d,.]+)'
     ]
     
     for pattern in expwop_patterns:
@@ -400,9 +459,9 @@ def extract_table_6b_values(text):
     data = {}
     
     patterns = [
-        r'6B\s*-\s*Supplies\s+made\s+to\s+SEZ.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'6B.*?SEZ.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'6B.*?Total.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'6B\s*-\s*Supplies\s+made\s+to\s+SEZ.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'6B.*?SEZ.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'6B.*?Total.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in patterns:
@@ -426,9 +485,9 @@ def extract_table_6c_values(text):
     data = {}
     
     patterns = [
-        r'6C\s*-\s*Deemed\s+Exports.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'6C.*?Deemed\s+Exports.*?\nTotal.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'6C.*?Total.*?Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'6C\s*-\s*Deemed\s+Exports.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'6C.*?Deemed\s+Exports.*?\nTotal.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'6C.*?Total.*?Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in patterns:
@@ -456,9 +515,9 @@ def extract_table_7_values(text):
     data = {}
     
     patterns = [
-        r'7\s*-\s*Taxable\s+supplies.*?unregistered\s+persons.*?\n.*?\n.*?Total\s+\d+\s+Net\s+Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'7.*?B2CS.*?\n.*?Total\s+\d+\s+Net\s+Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'7.*?Total\s+\d+\s+Net\s+Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'7\s*-\s*Taxable\s+supplies.*?unregistered\s+persons.*?\n.*?\n.*?Total\s+\d+\s+Net\s+Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'7.*?B2CS.*?\n.*?Total\s+\d+\s+Net\s+Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'7.*?Total\s+\d+\s+Net\s+Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in patterns:
@@ -487,9 +546,9 @@ def extract_table_8_values(text):
     
     # Total with multiple patterns
     total_patterns = [
-        r'8\s*-\s*Nil\s+rated.*?\nTotal\s+([\d,.]+)',
-        r'8.*?Nil\s+rated.*?\nTotal\s+([\d,.]+)',
-        r'8.*?Total\s+([\d,.]+)'
+        r'8\s*-\s*Nil\s+rated.*?\nTotal\s+(-?[\d,.]+)',
+        r'8.*?Nil\s+rated.*?\nTotal\s+(-?[\d,.]+)',
+        r'8.*?Total\s+(-?[\d,.]+)'
     ]
     
     for pattern in total_patterns:
@@ -504,9 +563,9 @@ def extract_table_8_values(text):
     
     # Extract sub-categories with multiple patterns
     nil_patterns = [
-        r'-\s*Nil\s+([\d,.]+)',
-        r'Nil\s+rated\s+([\d,.]+)',
-        r'Nil\s+([\d,.]+)'
+        r'-\s*Nil\s+(-?[\d,.]+)',
+        r'Nil\s+rated\s+(-?[\d,.]+)',
+        r'Nil\s+(-?[\d,.]+)'
     ]
     
     for pattern in nil_patterns:
@@ -518,9 +577,9 @@ def extract_table_8_values(text):
         data['8_Nil'] = ""
     
     exempted_patterns = [
-        r'-\s*Exempted\s+([\d,.]+)',
-        r'Exempted\s+([\d,.]+)',
-        r'Exempt\s+([\d,.]+)'
+        r'-\s*Exempted\s+(-?[\d,.]+)',
+        r'Exempted\s+(-?[\d,.]+)',
+        r'Exempt\s+(-?[\d,.]+)'
     ]
     
     for pattern in exempted_patterns:
@@ -532,9 +591,9 @@ def extract_table_8_values(text):
         data['8_Exempted'] = ""
     
     non_gst_patterns = [
-        r'-\s*Non-GST\s+([\d,.]+)',
-        r'Non-GST\s+([\d,.]+)',
-        r'Non\s+GST\s+([\d,.]+)'
+        r'-\s*Non-GST\s+(-?[\d,.]+)',
+        r'Non-GST\s+(-?[\d,.]+)',
+        r'Non\s+GST\s+(-?[\d,.]+)'
     ]
     
     for pattern in non_gst_patterns:
@@ -552,7 +611,7 @@ def extract_table_9a_values(text):
     data = {}
     
     # B2B Regular
-    b2b_reg_match = re.search(r'9A - Amendment to taxable outward supplies.*B2B Regular.*\nAmended amount - Total\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    b2b_reg_match = re.search(r'9A - Amendment to taxable outward supplies.*B2B Regular.*\nAmended amount - Total\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if b2b_reg_match:
         data['9A_B2BRegular_Value'] = b2b_reg_match.group(1).strip()
         data['9A_B2BRegular_IGST'] = b2b_reg_match.group(2).strip()
@@ -565,9 +624,26 @@ def extract_table_9a_values(text):
         data['9A_B2BRegular_CGST'] = ""
         data['9A_B2BRegular_SGST'] = ""
         data['9A_B2BRegular_Cess'] = ""
+    b2b_reg_net_match = re.search(
+    r'9A - Amendment to taxable outward supplies.*?B2B Regular.*?'
+    r'Net differential amount.*?\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)',
+    text, re.DOTALL
+    )
+    if b2b_reg_net_match:
+        data['9A_B2BRegular_NetDiff_Value'] = b2b_reg_net_match.group(1).strip()
+        data['9A_B2BRegular_NetDiff_IGST'] = b2b_reg_net_match.group(2).strip()
+        data['9A_B2BRegular_NetDiff_CGST'] = b2b_reg_net_match.group(3).strip()
+        data['9A_B2BRegular_NetDiff_SGST'] = b2b_reg_net_match.group(4).strip()
+        data['9A_B2BRegular_NetDiff_Cess'] = b2b_reg_net_match.group(5).strip()
+    else:
+        data['9A_B2BRegular_NetDiff_Value'] = ""
+        data['9A_B2BRegular_NetDiff_IGST'] = ""
+        data['9A_B2BRegular_NetDiff_CGST'] = ""
+        data['9A_B2BRegular_NetDiff_SGST'] = ""
+        data['9A_B2BRegular_NetDiff_Cess'] = ""
     
     # B2B Reverse Charge
-    b2b_rev_match = re.search(r'9A - Amendment to taxable outward supplies.*B2B Reverse charge.*\nAmended amount - Total\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    b2b_rev_match = re.search(r'9A - Amendment to taxable outward supplies.*B2B Reverse charge.*\nAmended amount - Total\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if b2b_rev_match:
         data['9A_B2BReverse_Value'] = b2b_rev_match.group(1).strip()
         data['9A_B2BReverse_IGST'] = b2b_rev_match.group(2).strip()
@@ -582,7 +658,7 @@ def extract_table_9a_values(text):
         data['9A_B2BReverse_Cess'] = ""
     
     # B2CL
-    b2cl_match = re.search(r'9A - Amendment to Inter-State supplies.*B2CL.*\nAmended amount - Total\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    b2cl_match = re.search(r'9A - Amendment to Inter-State supplies.*B2CL.*\nAmended amount - Total\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if b2cl_match:
         data['9A_B2CL_Value'] = b2cl_match.group(1).strip()
         data['9A_B2CL_IGST'] = b2cl_match.group(2).strip()
@@ -593,7 +669,7 @@ def extract_table_9a_values(text):
         data['9A_B2CL_Cess'] = ""
     
     # Exports (EXPWP)
-    expwp_match = re.search(r'9A - Amendment to Export supplies.*\nAmended amount - Total\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    expwp_match = re.search(r'9A - Amendment to Export supplies.*\nAmended amount - Total\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if expwp_match:
         data['9A_EXPWP_Value'] = expwp_match.group(1).strip()
         data['9A_EXPWP_IGST'] = expwp_match.group(2).strip()
@@ -604,14 +680,14 @@ def extract_table_9a_values(text):
         data['9A_EXPWP_Cess'] = ""
     
     # Exports (EXPWOP)
-    expwop_match = re.search(r'9A - Amendment to Export supplies.*- EXPWOP\s+\d+\s+Invoice\s+([\d,.]+|0.00)', text)
+    expwop_match = re.search(r'9A - Amendment to Export supplies.*- EXPWOP\s+\d+\s+Invoice\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if expwop_match:
         data['9A_EXPWOP_Value'] = expwop_match.group(1).strip()
     else:
         data['9A_EXPWOP_Value'] = ""
     
     # SEZ (SEZWP)
-    sezwp_match = re.search(r'9A - Amendment to supplies made to SEZ.*\nAmended amount - Total\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    sezwp_match = re.search(r'9A - Amendment to supplies made to SEZ.*\nAmended amount - Total\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if sezwp_match:
         data['9A_SEZWP_Value'] = sezwp_match.group(1).strip()
         data['9A_SEZWP_IGST'] = sezwp_match.group(2).strip()
@@ -622,14 +698,49 @@ def extract_table_9a_values(text):
         data['9A_SEZWP_Cess'] = ""
     
     # SEZ (SEZWOP)
-    sezwop_match = re.search(r'9A - Amendment to supplies made to SEZ.*- SEZWOP\s+\d+\s+Invoice\s+([\d,.]+|0.00)', text)
+    sezwop_match = re.search(r'9A - Amendment to supplies made to SEZ.*- SEZWOP\s+\d+\s+Invoice\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if sezwop_match:
         data['9A_SEZWOP_Value'] = sezwop_match.group(1).strip()
     else:
         data['9A_SEZWOP_Value'] = ""
-    
+    # ADD after each 9A section — net diff extraction
+    # (same pattern as 9A_B2BRegular_NetDiff already done for B2BRegular)
+
+# B2CL net diff
+    b2cl_net = re.search(
+        r'9A - Amendment to Inter-State supplies.*?B2CL.*?\nNet differential amount.*?\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+            text, re.DOTALL)
+    data['9A_B2CL_NetDiff_Value'] = b2cl_net.group(1).strip() if b2cl_net else ""
+    data['9A_B2CL_NetDiff_IGST']  = b2cl_net.group(2).strip() if b2cl_net else ""
+    data['9A_B2CL_NetDiff_Cess']  = b2cl_net.group(3).strip() if b2cl_net else ""
+
+    # EXPWP/EXPWOP net diff (exports)
+    exp_net = re.search(
+        r'9A - Amendment to Export supplies.*?\nNet differential amount.*?Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        text, re.DOTALL)
+    data['9A_EXPWP_NetDiff_Value']  = exp_net.group(1).strip() if exp_net else ""
+    data['9A_EXPWP_NetDiff_IGST']   = exp_net.group(2).strip() if exp_net else ""
+    data['9A_EXPWOP_NetDiff_Value'] = ""  # EXPWOP = no payment so no IGST line
+
+    # SEZWP net diff
+    sez_net = re.search(
+        r'9A - Amendment to supplies made to SEZ.*?\nNet differential amount.*?Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        text, re.DOTALL)
+    data['9A_SEZWP_NetDiff_Value'] = sez_net.group(1).strip() if sez_net else ""
+    data['9A_SEZWP_NetDiff_IGST']  = sez_net.group(2).strip() if sez_net else ""
+    data['9A_SEZWP_NetDiff_Cess']  = sez_net.group(3).strip() if sez_net else ""
+
+    # DE net diff
+    de_net = re.search(
+        r'9A - Amendment to Deemed Exports.*?\nNet differential amount.*?\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        text, re.DOTALL)
+    data['9A_DE_NetDiff_Value'] = de_net.group(1).strip() if de_net else ""
+    data['9A_DE_NetDiff_IGST']  = de_net.group(2).strip() if de_net else ""
+    data['9A_DE_NetDiff_CGST']  = de_net.group(3).strip() if de_net else ""
+    data['9A_DE_NetDiff_SGST']  = de_net.group(4).strip() if de_net else ""
+    data['9A_DE_NetDiff_Cess']  = de_net.group(5).strip() if de_net else ""
     # Deemed Exports
-    de_match = re.search(r'9A - Amendment to Deemed Exports.*\nAmended amount - Total\s+\d+\s+Invoice\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    de_match = re.search(r'9A - Amendment to Deemed Exports.*\nAmended amount - Total\s+\d+\s+Invoice\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if de_match:
         data['9A_DE_Value'] = de_match.group(1).strip()
         data['9A_DE_IGST'] = de_match.group(2).strip()
@@ -645,107 +756,200 @@ def extract_table_9a_values(text):
     
     return data
 
-def extract_table_9b_values(text):
-    """Extract Table 9B - Credit/Debit Notes (Unregistered)."""
+
+def extract_table_9b_cdnur_values(text):
+    """Extract 9B CDNUR (Unregistered) — B2CL, EXPWP, EXPWOP."""
     data = {}
-    
-    # Total
-    total_match = re.search(r'9B - Credit/Debit Notes \(Unregistered\).*\nTotal - Net off debit/credit notes\s+\d+\s+Note\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
-    if total_match:
-        data['9B_Value'] = total_match.group(1).strip()
-        data['9B_IGST'] = total_match.group(2).strip()
-        data['9B_Cess'] = total_match.group(3).strip()
+    cdnur_block_match = re.search(
+        r'9B - Credit/Debit Notes \(Unregistered\).*?CDNUR(.*?)9C -',
+        text, re.DOTALL | re.IGNORECASE
+    )
+    cdnur_block = cdnur_block_match.group(1) if cdnur_block_match else ""
+
+    b2cl = re.search(r'- B2CL\s+\d+\s+Note\s+([\d,.-]+)\s+([\d,.-]+)\s+([\d,.-]+)', cdnur_block)
+    if b2cl:
+        data['9B_CDNUR_B2CL_Value'] = b2cl.group(1).strip()
+        data['9B_CDNUR_B2CL_IGST']  = b2cl.group(2).strip()
+        data['9B_CDNUR_B2CL_Cess']  = b2cl.group(3).strip()
     else:
-        data['9B_Value'] = ""
-        data['9B_IGST'] = ""
-        data['9B_Cess'] = ""
-    
-    # B2CL
-    b2cl_match = re.search(r'9B - Credit/Debit Notes \(Unregistered\).*-\s+B2CL\s+\d+\s+Note\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
-    if b2cl_match:
-        data['9B_B2CL_Value'] = b2cl_match.group(1).strip()
-        data['9B_B2CL_IGST'] = b2cl_match.group(2).strip()
-        data['9B_B2CL_Cess'] = b2cl_match.group(3).strip()
+        data['9B_CDNUR_B2CL_Value'] = data['9B_CDNUR_B2CL_IGST'] = data['9B_CDNUR_B2CL_Cess'] = ""
+
+    expwp = re.search(r'- EXPWP\s+\d+\s+N?Note\s+([\d,.-]+)\s+([\d,.-]+)\s+([\d,.-]+)', cdnur_block)
+    if expwp:
+        data['9B_CDNUR_EXPWP_Value'] = expwp.group(1).strip()
+        data['9B_CDNUR_EXPWP_IGST']  = expwp.group(2).strip()
+        data['9B_CDNUR_EXPWP_Cess']  = expwp.group(3).strip()
     else:
-        data['9B_B2CL_Value'] = ""
-        data['9B_B2CL_IGST'] = ""
-        data['9B_B2CL_Cess'] = ""
-    
-    # EXPWP
-    expwp_match = re.search(r'9B - Credit/Debit Notes \(Unregistered\).*-\s+EXPWP\s+\d+\s+Note\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
-    if expwp_match:
-        data['9B_EXPWP_Value'] = expwp_match.group(1).strip()
-        data['9B_EXPWP_IGST'] = expwp_match.group(2).strip()
-        data['9B_EXPWP_Cess'] = expwp_match.group(3).strip()
-    else:
-        data['9B_EXPWP_Value'] = ""
-        data['9B_EXPWP_IGST'] = ""
-        data['9B_EXPWP_Cess'] = ""
-    
-    # EXPWOP
-    expwop_match = re.search(r'9B - Credit/Debit Notes \(Unregistered\).*-\s+EXPWOP\s+\d+\s+Note\s+([\d,.]+|0.00)', text, re.DOTALL)
-    if expwop_match:
-        data['9B_EXPWOP_Value'] = expwop_match.group(1).strip()
-    else:
-        data['9B_EXPWOP_Value'] = ""
-    
+        data['9B_CDNUR_EXPWP_Value'] = data['9B_CDNUR_EXPWP_IGST'] = data['9B_CDNUR_EXPWP_Cess'] = ""
+
+    expwop = re.search(r'- EXPWOP\s+\d+\s+Note\s+([\d,.-]+)', cdnur_block)
+    data['9B_CDNUR_EXPWOP_Value'] = expwop.group(1).strip() if expwop else ""
+
     return data
 
-def extract_table_9c_values(text):
-    """Extract Table 9C - Amended Credit/Debit Notes (Registered and Unregistered)."""
+def extract_table_9b_registered_values(text):
+    """Extract Table 9B - Credit/Debit Notes (Registered) – CDNR.
+    Extracts each sub-category separately using schema keys that
+    match gstr1_schema.json and gstr1_vs_3b.py expectations.
+    """
+    data = {}
+
+    # ── 9B CDNR Total (Registered) ───────────────────────────────────────────
+    total_match = re.search(
+        r'9B - Credit/Debit Notes \(Registered\).*?'
+        r'Total - Net off debit/credit notes.*?\d+\s+Note\s+'
+        r'(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)',
+        text, re.DOTALL)
+    if total_match:
+        data['9B_CDNR_Total_Value'] = total_match.group(1).strip()
+        data['9B_CDNR_Total_IGST']  = total_match.group(2).strip()
+        data['9B_CDNR_Total_CGST']  = total_match.group(3).strip()
+        data['9B_CDNR_Total_SGST']  = total_match.group(4).strip()
+        data['9B_CDNR_Total_Cess']  = total_match.group(5).strip()
+    else:
+        data['9B_CDNR_Total_Value'] = ""
+        data['9B_CDNR_Total_IGST']  = ""
+        data['9B_CDNR_Total_CGST']  = ""
+        data['9B_CDNR_Total_SGST']  = ""
+        data['9B_CDNR_Total_Cess']  = ""
+
+    # ── 9B CDNR B2B Regular (nets into 4A) ───────────────────────────────────
+    b2b_match = re.search(
+        r'Credit / Debit notes issued to registered person.*?B2B Regular\s*\n'
+        r'Net Total.*?Note\s+'
+        r'(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)',
+        text, re.DOTALL | re.IGNORECASE)
+    if b2b_match:
+        data['9B_CDNR_B2BRegular_Value'] = b2b_match.group(1).strip()
+        data['9B_CDNR_B2BRegular_IGST']  = b2b_match.group(2).strip()
+        data['9B_CDNR_B2BRegular_CGST']  = b2b_match.group(3).strip()
+        data['9B_CDNR_B2BRegular_SGST']  = b2b_match.group(4).strip()
+        data['9B_CDNR_B2BRegular_Cess']  = b2b_match.group(5).strip()
+    else:
+        data['9B_CDNR_B2BRegular_Value'] = ""
+        data['9B_CDNR_B2BRegular_IGST']  = ""
+        data['9B_CDNR_B2BRegular_CGST']  = ""
+        data['9B_CDNR_B2BRegular_SGST']  = ""
+        data['9B_CDNR_B2BRegular_Cess']  = ""
+
+    # ── 9B CDNR SEZ (nets into 6B) ───────────────────────────────────────────
+    sez_match = re.search(
+        r'Credit / Debit notes issued to registered person.*?SEZWP/SEZWOP\s*\n'
+        r'Net Total.*?Note\s+'
+        r'(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)',
+        text, re.DOTALL | re.IGNORECASE)
+    if sez_match:
+        data['9B_CDNR_SEZ_Value'] = sez_match.group(1).strip()
+        data['9B_CDNR_SEZ_IGST']  = sez_match.group(2).strip()
+        data['9B_CDNR_SEZ_Cess']  = sez_match.group(3).strip()
+    else:
+        data['9B_CDNR_SEZ_Value'] = ""
+        data['9B_CDNR_SEZ_IGST']  = ""
+        data['9B_CDNR_SEZ_Cess']  = ""
+
+    # ── 9B CDNR DE (nets into 6C) ────────────────────────────────────────────
+    de_match = re.search(
+        r'Credit / Debit notes issued to registered person.*?table 6C.*?DE\s*\n'
+        r'Net Total.*?Note\s+'
+        r'(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)\s+(-?[\d,]+\.?\d*)',
+        text, re.DOTALL | re.IGNORECASE)
+    if de_match:
+        data['9B_CDNR_DE_Value'] = de_match.group(1).strip()
+        data['9B_CDNR_DE_IGST']  = de_match.group(2).strip()
+        data['9B_CDNR_DE_CGST']  = de_match.group(3).strip()
+        data['9B_CDNR_DE_SGST']  = de_match.group(4).strip()
+        data['9B_CDNR_DE_Cess']  = de_match.group(5).strip()
+    else:
+        data['9B_CDNR_DE_Value'] = ""
+        data['9B_CDNR_DE_IGST']  = ""
+        data['9B_CDNR_DE_CGST']  = ""
+        data['9B_CDNR_DE_SGST']  = ""
+        data['9B_CDNR_DE_Cess']  = ""
+
+    # ── Backward-compat aliases (old keys some callers may still use) ─────────
+    data['CDNR_Value'] = data['9B_CDNR_B2BRegular_Value']
+    data['CDNR_IGST']  = data['9B_CDNR_B2BRegular_IGST']
+    data['CDNR_CGST']  = data['9B_CDNR_B2BRegular_CGST']
+    data['CDNR_SGST']  = data['9B_CDNR_B2BRegular_SGST']
+    data['CDNR_Cess']  = data['9B_CDNR_B2BRegular_Cess']
+
+    return data
+
+def extract_table_9b_values(text):
+    """Extract Table 9B - Credit/Debit Notes (Registered CDNR + Unregistered CDNUR)"""
     data = {}
     
-    # Registered (CDNRA)
-    cdnra_match = re.search(r'9C - Amended Credit/Debit Notes \(Registered\).*\nAmended amount - Total\s+\d+\s+Note\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
-    if cdnra_match:
-        data['9C_Value'] = cdnra_match.group(1).strip()
-        data['9C_IGST'] = cdnra_match.group(2).strip()
-        data['9C_CGST'] = cdnra_match.group(3).strip()
-        data['9C_SGST'] = cdnra_match.group(4).strip()
-        data['9C_Cess'] = cdnra_match.group(5).strip()
-    else:
-        data['9C_Value'] = ""
-        data['9C_IGST'] = ""
-        data['9C_CGST'] = ""
-        data['9C_SGST'] = ""
-        data['9C_Cess'] = ""
-    
-    # Unregistered (CDNURA) - B2CL
-    cdnura_b2cl_match = re.search(r'9C - Amended Credit/Debit Notes \(Unregistered\).*B2CL\s+\d+\s+Note\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
-    if cdnura_b2cl_match:
-        data['9C_B2CL_Value'] = cdnura_b2cl_match.group(1).strip()
-        data['9C_B2CL_IGST'] = cdnura_b2cl_match.group(2).strip()
-        data['9C_B2CL_Cess'] = cdnura_b2cl_match.group(3).strip()
-    else:
-        data['9C_B2CL_Value'] = ""
-        data['9C_B2CL_IGST'] = ""
-        data['9C_B2CL_Cess'] = ""
-    
-    # Unregistered (CDNURA) - EXPWP
-    cdnura_expwp_match = re.search(r'9C - Amended Credit/Debit Notes \(Unregistered\).*EXPWP\s+\d+\s+Note\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
-    if cdnura_expwp_match:
-        data['9C_EXPWP_Value'] = cdnura_expwp_match.group(1).strip()
-        data['9C_EXPWP_IGST'] = cdnura_expwp_match.group(2).strip()
-        data['9C_EXPWP_Cess'] = cdnura_expwp_match.group(3).strip()
-    else:
-        data['9C_EXPWP_Value'] = ""
-        data['9C_EXPWP_IGST'] = ""
-        data['9C_EXPWP_Cess'] = ""
-    
-    # Unregistered (CDNURA) - EXPWOP
-    cdnura_expwop_match = re.search(r'9C - Amended Credit/Debit Notes \(Unregistered\).*EXPWOP\s+\d+\s+Note\s+([\d,.]+|0.00)', text, re.DOTALL)
-    if cdnura_expwop_match:
-        data['9C_EXPWOP_Value'] = cdnura_expwop_match.group(1).strip()
-    else:
-        data['9C_EXPWOP_Value'] = ""
-    
+    # === REGISTERED (CDNR) - B2B, SEZ, DE ===
+    # Net Differential (most important)
+    net_match = re.search(
+        r'9B - Credit/Debit Notes \(Registered\).*?Net off debit/credit notes.*?Net Total.*?Note\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)',
+        text, re.DOTALL | re.IGNORECASE
+    )
+    if net_match:
+        data['9B_NetDiff_Value'] = safe_float(net_match.group(1))
+        data['9B_NetDiff_IGST'] = safe_float(net_match.group(2))
+        data['9B_NetDiff_CGST'] = safe_float(net_match.group(3))
+        data['9B_NetDiff_SGST'] = safe_float(net_match.group(4))
+        data['9B_NetDiff_Cess'] = safe_float(net_match.group(5))
+
+    # B2B Regular CDNR
+    b2b_match = re.search(
+        r'B2B Regular.*?Net Total.*?Note\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)',
+        text, re.DOTALL | re.IGNORECASE
+    )
+    if b2b_match:
+        data['9B_CDNR_B2B_Value'] = safe_float(b2b_match.group(1))
+        data['9B_CDNR_B2B_IGST'] = safe_float(b2b_match.group(2))
+        data['9B_CDNR_B2B_CGST'] = safe_float(b2b_match.group(3))
+        data['9B_CDNR_B2B_SGST'] = safe_float(b2b_match.group(4))
+        data['9B_CDNR_B2B_Cess'] = safe_float(b2b_match.group(5))
+
+    # SEZ CDNR
+    sez_match = re.search(
+        r'SEZWP/SEZWOP.*?Net Total.*?Note\s+([-\d,.]+)\s+([-\d,.]+)',
+        text, re.DOTALL | re.IGNORECASE
+    )
+    if sez_match:
+        data['9B_CDNR_SEZ_Value'] = safe_float(sez_match.group(1))
+        data['9B_CDNR_SEZ_IGST'] = safe_float(sez_match.group(2))
+
+    # DE CDNR
+    de_match = re.search(
+        r'table 6C.*?DE.*?Net Total.*?Note\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)',
+        text, re.DOTALL | re.IGNORECASE
+    )
+    if de_match:
+        data['9B_CDNR_DE_Value'] = safe_float(de_match.group(1))
+        data['9B_CDNR_DE_IGST'] = safe_float(de_match.group(2))
+        data['9B_CDNR_DE_CGST'] = safe_float(de_match.group(3))
+        data['9B_CDNR_DE_SGST'] = safe_float(de_match.group(4))
+        data['9B_CDNR_DE_Cess'] = safe_float(de_match.group(5))
+
+    # === UNREGISTERED (CDNUR) - Keep for completeness ===
+    b2cl_match = re.search(r'B2CL\s+\d+\s+Note\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)', text, re.DOTALL | re.IGNORECASE)
+    if b2cl_match:
+        data['9B_CDNUR_B2CL_Value'] = safe_float(b2cl_match.group(1))
+        data['9B_CDNUR_B2CL_IGST'] = safe_float(b2cl_match.group(2))
+        data['9B_CDNUR_B2CL_Cess'] = safe_float(b2cl_match.group(3))
+
+    # Default all keys
+    default_keys = [
+        '9B_NetDiff_Value', '9B_NetDiff_IGST', '9B_NetDiff_CGST', '9B_NetDiff_SGST', '9B_NetDiff_Cess',
+        '9B_CDNR_B2B_Value', '9B_CDNR_B2B_IGST', '9B_CDNR_B2B_CGST', '9B_CDNR_B2B_SGST', '9B_CDNR_B2B_Cess',
+        '9B_CDNR_SEZ_Value', '9B_CDNR_SEZ_IGST', '9B_CDNR_DE_Value', '9B_CDNR_DE_IGST',
+        '9B_CDNUR_B2CL_Value', '9B_CDNUR_B2CL_IGST', '9B_CDNUR_B2CL_Cess'
+    ]
+    for key in default_keys:
+        data.setdefault(key, 0.0)
+
     return data
 
 def extract_table_10_values(text):
     """Extract Table 10 - Amendment to B2C Supplies."""
     data = {}
     
-    match = re.search(r'10 - Amendment to taxable outward supplies.*B2C.*\nAmended amount - Total\s+\d+\s+Net Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    # Amended total
+    match = re.search(r'10 - Amendment to taxable outward supplies.*B2C.*\nAmended amount - Total\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if match:
         data['10_Value'] = match.group(1).strip()
         data['10_CGST'] = match.group(2).strip()
@@ -757,6 +961,24 @@ def extract_table_10_values(text):
         data['10_SGST'] = ""
         data['10_Cess'] = ""
     
+    # Net differential (most important for reconciliation)
+    net_match = re.search(
+        r'10 - Amendment.*?Net differential amount.*?\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)\s+([-\d,.]+)',
+        text, re.DOTALL
+    )
+    if net_match:
+        data['10_NetDiff_Value'] = net_match.group(1).strip()
+        data['10_NetDiff_IGST']  = net_match.group(2).strip()   # Often 0 for B2CS but keep
+        data['10_NetDiff_CGST']  = net_match.group(3).strip()
+        data['10_NetDiff_SGST']  = net_match.group(4).strip()
+        data['10_NetDiff_Cess']  = net_match.group(5).strip()
+    else:
+        data['10_NetDiff_Value'] = ""
+        data['10_NetDiff_IGST']  = ""
+        data['10_NetDiff_CGST']  = ""
+        data['10_NetDiff_SGST']  = ""
+        data['10_NetDiff_Cess']  = ""
+    
     return data
 
 def extract_table_11_values(text):
@@ -764,7 +986,7 @@ def extract_table_11_values(text):
     data = {}
     
     # 11A
-    match_11a = re.search(r'11A\(1\), 11A\(2\).*\nTotal\s+\d+\s+Net Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    match_11a = re.search(r'11A\(1\), 11A\(2\).*\nTotal\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if match_11a:
         data['11A_Value'] = match_11a.group(1).strip()
         data['11A_CGST'] = match_11a.group(2).strip()
@@ -777,7 +999,7 @@ def extract_table_11_values(text):
         data['11A_Cess'] = ""
     
     # 11B
-    match_11b = re.search(r'11B\(1\), 11B\(2\).*\nTotal\s+\d+\s+Net Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    match_11b = re.search(r'11B\(1\), 11B\(2\).*\nTotal\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if match_11b:
         data['11B_Value'] = match_11b.group(1).strip()
         data['11B_CGST'] = match_11b.group(2).strip()
@@ -796,7 +1018,8 @@ def extract_table_12_values(text):
     data = {}
     
     # Total
-    total_match = re.search(r'12 - HSN-wise summary.*\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    total_match = re.search(
+    r'12 - HSN-wise summary of outward supplies\s*\nTotal\s+\d+\s+NA\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.IGNORECASE)
     if total_match:
         data['12_Value'] = total_match.group(1).strip()
         data['12_IGST'] = total_match.group(2).strip()
@@ -813,24 +1036,13 @@ def extract_table_12_values(text):
     return data
 
 def extract_table_13_values(text):
-    """Extract Table 13 - Documents issued during the tax period."""
     data = {}
-    
-    # Total
-    total_match = re.search(r'13 - Documents issued during the tax period.*\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
-    if total_match:
-        data['13_Value'] = total_match.group(1).strip()
-        data['13_IGST'] = total_match.group(2).strip()
-        data['13_CGST'] = total_match.group(3).strip()
-        data['13_SGST'] = total_match.group(4).strip()
-        data['13_Cess'] = total_match.group(5).strip()
+    match = re.search(r'13 - Documents issued.*?Net issued documents\s+(\d+)', text, re.DOTALL)
+    if match:
+        data['13_DocumentsIssued'] = match.group(1).strip()
     else:
-        data['13_Value'] = ""
-        data['13_IGST'] = ""
-        data['13_CGST'] = ""
-        data['13_SGST'] = ""
-        data['13_Cess'] = ""
-    
+        data['13_DocumentsIssued'] = ""
+    # Table 13 only has a document count, no tax amount columns
     return data
 
 def extract_table_14_values(text):
@@ -838,12 +1050,17 @@ def extract_table_14_values(text):
     data = {}
     
     # Total
-    total_match = re.search(r'14 - Supplies made through E-Commerce Operators.*\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    total_match = re.search(
+    r'14 - Supplies made through E-Commerce Operators\s*\nTotal\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+    text, re.DOTALL | re.IGNORECASE)
+    
     if total_match:
         data['14_Value'] = total_match.group(1).strip()
-        data['14_CGST'] = total_match.group(2).strip()
-        data['14_SGST'] = total_match.group(3).strip()
-        data['14_Cess'] = total_match.group(4).strip()
+        data['14_IGST']  = total_match.group(2).strip()  
+        data['14_CGST']  = total_match.group(3).strip()
+        data['14_SGST']  = total_match.group(4).strip()
+        data['14_Cess']  = total_match.group(5).strip()
+        
     else:
         data['14_Value'] = ""
         data['14_CGST'] = ""
@@ -851,7 +1068,7 @@ def extract_table_14_values(text):
         data['14_Cess'] = ""
     
     # Liable to collect tax u/s 52
-    u52_match = re.search(r'14 - Supplies made through E-Commerce Operators.*\(a\) Liable to collect tax u/s 52\s+\d+\s+Net Value\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    u52_match = re.search(r'14 - Supplies made through E-Commerce Operators.*\(a\) Liable to collect tax u/s 52\s+\d+\s+Net Value\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if u52_match:
         data['14_U52_Value'] = u52_match.group(1).strip()
         data['14_U52_CGST'] = u52_match.group(2).strip()
@@ -864,7 +1081,7 @@ def extract_table_14_values(text):
         data['14_U52_Cess'] = ""
     
     # Liable to pay tax u/s 9(5)
-    u95_match = re.search(r'14 - Supplies made through E-Commerce Operators.*\(b\) Liable to pay tax u/s 9\(5\)\s+\d+\s+Net Value\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    u95_match = re.search(r'14 - Supplies made through E-Commerce Operators.*\(b\) Liable to pay tax u/s 9\(5\)\s+\d+\s+Net Value\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if u95_match:
         data['14_U95_Value'] = u95_match.group(1).strip()
         data['14_U95_CGST'] = u95_match.group(2).strip()
@@ -883,7 +1100,8 @@ def extract_table_14a_values(text):
     data = {}
     
     # Total
-    total_match = re.search(r'14A - Amended Supplies made through E-Commerce Operators.*\nAmended amount - Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    total_match = re.search(
+    r'14A - Amended Supplies.*?Amended amount\s*[–-]\s*Total\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL | re.IGNORECASE)
     if total_match:
         data['14A_Value'] = total_match.group(1).strip()
         data['14A_CGST'] = total_match.group(2).strip()
@@ -896,7 +1114,7 @@ def extract_table_14a_values(text):
         data['14A_Cess'] = ""
     
     # Liable to collect tax u/s 52
-    u52_match = re.search(r'14A - Amended Supplies made through E-Commerce Operators.*\(a\) Liable to collect tax u/s 52\s+\d+\s+Net Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    u52_match = re.search(r'14A - Amended Supplies made through E-Commerce Operators.*\(a\) Liable to collect tax u/s 52\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if u52_match:
         data['14A_U52_Value'] = u52_match.group(1).strip()
         data['14A_U52_CGST'] = u52_match.group(2).strip()
@@ -909,7 +1127,7 @@ def extract_table_14a_values(text):
         data['14A_U52_Cess'] = ""
     
     # Liable to pay tax u/s 9(5)
-    u95_match = re.search(r'14A - Amended Supplies made through E-Commerce Operators.*\(b\) Liable to pay tax u/s 9\(5\)\s+\d+\s+Net Value\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    u95_match = re.search(r'14A - Amended Supplies made through E-Commerce Operators.*\(b\) Liable to pay tax u/s 9\(5\)\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if u95_match:
         data['14A_U95_Value'] = u95_match.group(1).strip()
         data['14A_U95_CGST'] = u95_match.group(2).strip()
@@ -928,7 +1146,7 @@ def extract_table_15_values(text):
     data = {}
     
     # Total
-    total_match = re.search(r'15 - Supplies U/s 9\(5\).*\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    total_match = re.search(r'15 - Supplies U/s 9\(5\).*\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if total_match:
         data['15_Value'] = total_match.group(1).strip()
         data['15_IGST'] = total_match.group(2).strip()
@@ -943,7 +1161,7 @@ def extract_table_15_values(text):
         data['15_Cess'] = ""
     
     # Registered Recipients - Regular
-    reg_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+Regular\s+\d+\s+Document\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    reg_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+Regular\s+\d+\s+Document\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if reg_match:
         data['15_Regular_Value'] = reg_match.group(1).strip()
         data['15_Regular_IGST'] = reg_match.group(2).strip()
@@ -958,7 +1176,7 @@ def extract_table_15_values(text):
         data['15_Regular_Cess'] = ""
     
     # Registered Recipients - DE
-    de_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+DE\s+\d+\s+Document\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    de_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+DE\s+\d+\s+Document\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if de_match:
         data['15_DE_Value'] = de_match.group(1).strip()
         data['15_DE_IGST'] = de_match.group(2).strip()
@@ -973,7 +1191,7 @@ def extract_table_15_values(text):
         data['15_DE_Cess'] = ""
     
     # Registered Recipients - SEZWP
-    sezwp_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+SEZWP\s+\d+\s+Document\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    sezwp_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+SEZWP\s+\d+\s+Document\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if sezwp_match:
         data['15_SEZWP_Value'] = sezwp_match.group(1).strip()
         data['15_SEZWP_IGST'] = sezwp_match.group(2).strip()
@@ -984,14 +1202,14 @@ def extract_table_15_values(text):
         data['15_SEZWP_Cess'] = ""
     
     # Registered Recipients - SEZWOP
-    sezwop_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+SEZWOP\s+\d+\s+Document\s+([\d,.]+|0.00)', text, re.DOTALL)
+    sezwop_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+SEZWOP\s+\d+\s+Document\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if sezwop_match:
         data['15_SEZWOP_Value'] = sezwop_match.group(1).strip()
     else:
         data['15_SEZWOP_Value'] = ""
     
     # Unregistered Recipients
-    unreg_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+For Unregistered Recipient\s+\d+\s+Net Value\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    unreg_match = re.search(r'15 - Supplies U/s 9\(5\).*-\s+For Unregistered Recipient\s+\d+\s+Net Value\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if unreg_match:
         data['15_Unreg_Value'] = unreg_match.group(1).strip()
         data['15_Unreg_IGST'] = unreg_match.group(2).strip()
@@ -1012,7 +1230,7 @@ def extract_table_15a_values(text):
     data = {}
     
     # Registered Recipients - Total
-    reg_total_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*\nAmended amount - Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)', text, re.DOTALL)
+    reg_total_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*\nAmended amount - Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
     if reg_total_match:
         data['15A_Reg_Value'] = reg_total_match.group(1).strip()
         data['15A_Reg_IGST'] = reg_total_match.group(2).strip()
@@ -1027,7 +1245,7 @@ def extract_table_15a_values(text):
         data['15A_Reg_Cess'] = ""
     
     # Registered Recipients - Regular
-    reg_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*-\s+Regular\s+\d+\s+Document\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    reg_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*-\s+Regular\s+\d+\s+Document\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if reg_match:
         data['15A_Regular_Value'] = reg_match.group(1).strip()
         data['15A_Regular_IGST'] = reg_match.group(2).strip()
@@ -1042,7 +1260,7 @@ def extract_table_15a_values(text):
         data['15A_Regular_Cess'] = ""
     
     # Registered Recipients - DE
-    de_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*-\s+DE\s+\d+\s+Document\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    de_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*-\s+DE\s+\d+\s+Document\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if de_match:
         data['15A_DE_Value'] = de_match.group(1).strip()
         data['15A_DE_IGST'] = de_match.group(2).strip()
@@ -1057,7 +1275,7 @@ def extract_table_15a_values(text):
         data['15A_DE_Cess'] = ""
     
     # Registered Recipients - SEZWP
-    sezwp_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*-\s+SEZWP\s+\d+\s+Document\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    sezwp_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*-\s+SEZWP\s+\d+\s+Document\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if sezwp_match:
         data['15A_SEZWP_Value'] = sezwp_match.group(1).strip()
         data['15A_SEZWP_IGST'] = sezwp_match.group(2).strip()
@@ -1068,14 +1286,14 @@ def extract_table_15a_values(text):
         data['15A_SEZWP_Cess'] = ""
     
     # Registered Recipients - SEZWOP
-    sezwop_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*-\s+SEZWOP\s+\d+\s+Document\s+([\d,.]+|0.00)', text, re.DOTALL)
+    sezwop_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Registered Recipients.*-\s+SEZWOP\s+\d+\s+Document\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if sezwop_match:
         data['15A_SEZWOP_Value'] = sezwop_match.group(1).strip()
     else:
         data['15A_SEZWOP_Value'] = ""
     
     # Unregistered Recipients
-    unreg_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Unregistered Recipients.*\nAmended amount - Total\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)\s+([\d,.]+|0.00)', text, re.DOTALL)
+    unreg_match = re.search(r'15A \(i\) - Amended Supplies U/s 9\(5\) - For Unregistered Recipients.*\nAmended amount - Total\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)\s+(-?[\d,.]+|0.00)', text, re.DOTALL)
     if unreg_match:
         data['15A_Unreg_Value'] = unreg_match.group(1).strip()
         data['15A_Unreg_IGST'] = unreg_match.group(2).strip()
@@ -1097,9 +1315,9 @@ def extract_hsn_summaries(text):
     
     # HSN 16 - Multiple patterns
     hsn16_patterns = [
-        r'16\s*-\s*HSN-wise\s+summary.*?\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'16.*?HSN.*?\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'16.*?Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'16\s*-\s*HSN-wise\s+summary.*?\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'16.*?HSN.*?\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'16.*?Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in hsn16_patterns:
@@ -1121,9 +1339,9 @@ def extract_hsn_summaries(text):
     
     # HSN 17 - Multiple patterns
     hsn17_patterns = [
-        r'17\s*-\s*HSN-wise\s+summary.*?\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'17.*?HSN.*?\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'17.*?Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'17\s*-\s*HSN-wise\s+summary.*?\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'17.*?HSN.*?\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'17.*?Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in hsn17_patterns:
@@ -1145,9 +1363,9 @@ def extract_hsn_summaries(text):
     
     # HSN 18 - Multiple patterns
     hsn18_patterns = [
-        r'18\s*-\s*HSN-wise\s+summary.*?\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'18.*?HSN.*?\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'18.*?Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'18\s*-\s*HSN-wise\s+summary.*?\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'18.*?HSN.*?\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'18.*?Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in hsn18_patterns:
@@ -1169,9 +1387,9 @@ def extract_hsn_summaries(text):
     
     # HSN 19 - Multiple patterns
     hsn19_patterns = [
-        r'19\s*-\s*HSN-wise\s+summary.*?\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'19.*?HSN.*?\nTotal\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'19.*?Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'19\s*-\s*HSN-wise\s+summary.*?\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'19.*?HSN.*?\nTotal\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'19.*?Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)'
     ]
     
     for pattern in hsn19_patterns:
@@ -1199,10 +1417,10 @@ def extract_summary_values(text):
     
     # Summary total with multiple patterns
     summary_patterns = [
-        r'Summary\s*\(Page\s*2\s*Total\)\s*([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'Summary.*?Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'Page\s*2\s*Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)',
-        r'Total\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)\s+([\d,.]+)'
+        r'Summary\s*\(Page\s*2\s*Total\)\s*(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'Summary.*?Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'Page\s*2\s*Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        r'Total Liability\s*\(Outward supplies[^)]+\)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
     ]
     
     for pattern in summary_patterns:
@@ -1316,99 +1534,102 @@ def calculate_summary_statistics(data):
         summary_stats['Total_Cess'] = 0
     
     return summary_stats
-
 def validate_extracted_data(data):
     """Perform comprehensive validation on extracted data."""
-    validation_results = {}
-    
-    # Required fields validation
-    required_fields = [
-        'GSTIN', 'LegalName', 'ARN', 'ARNDate', 'TaxPeriod', 
-        'FinancialYear', 'VerificationDate', 'AuthorizedSignatory', 'Designation'
-    ]
-    
-    for field in required_fields:
-        if not data.get(field):
-            validation_results[f'{field}_missing'] = True
-            validation_results[f'{field}_validation'] = 'FAILED'
+    try:
+        validation_results = {}
+
+        # Required fields validation
+        required_fields = [
+            'GSTIN', 'LegalName', 'ARN', 'ARNDate', 'TaxPeriod',
+            'FinancialYear', 'VerificationDate', 'AuthorizedSignatory', 'Designation'
+        ]
+        for field in required_fields:
+            if not data.get(field):
+                validation_results[f'{field}_missing'] = True
+                validation_results[f'{field}_validation'] = 'FAILED'
+            else:
+                validation_results[f'{field}_missing'] = False
+                validation_results[f'{field}_validation'] = 'PASSED'
+
+        # GSTIN format validation
+        gstin = data.get('GSTIN', '')
+        if gstin and len(gstin) == 15 and gstin.isalnum():
+            validation_results['GSTIN_format'] = 'VALID'
         else:
-            validation_results[f'{field}_missing'] = False
-            validation_results[f'{field}_validation'] = 'PASSED'
-    
-    # GSTIN format validation
-    gstin = data.get('GSTIN', '')
-    if gstin and len(gstin) == 15 and gstin.isalnum():
-        validation_results['GSTIN_format'] = 'VALID'
-    else:
-        validation_results['GSTIN_format'] = 'INVALID'
-    
-    # ARN format validation
-    arn = data.get('ARN', '')
-    if arn and arn.isalnum():
-        validation_results['ARN_format'] = 'VALID'
-    else:
-        validation_results['ARN_format'] = 'INVALID'
-    
-    # Date format validation
-    date_fields = ['ARNDate', 'VerificationDate']
-    for field in date_fields:
-        date_value = data.get(field, '')
-        if date_value and re.match(r'\d{2}/\d{2}/\d{4}', date_value):
-            validation_results[f'{field}_format'] = 'VALID'
+            validation_results['GSTIN_format'] = 'INVALID'
+
+        # ARN format validation
+        arn = data.get('ARN', '')
+        if arn and arn.isalnum():
+            validation_results['ARN_format'] = 'VALID'
         else:
-            validation_results[f'{field}_format'] = 'INVALID'
-    
-    # Tax period validation
-    tax_period = data.get('TaxPeriod', '')
-    if tax_period and re.match(r'[A-Za-z]+', tax_period):
-        validation_results['TaxPeriod_format'] = 'VALID'
-    else:
-        validation_results['TaxPeriod_format'] = 'INVALID'
-    
-    # Financial year validation
-    fy = data.get('FinancialYear', '')
-    if fy and re.match(r'\d{4}-\d{2}', fy):
-        validation_results['FinancialYear_format'] = 'VALID'
-    else:
-        validation_results['FinancialYear_format'] = 'INVALID'
-    
-    # Summary validation
-    summary_value = safe_float(data.get('Summary_Value', 0))
-    calculated_total = safe_float(data.get('Total_Taxable_Supplies', 0))
-    
-    if summary_value > 0 and calculated_total > 0:
-        difference = abs(summary_value - calculated_total)
-        if difference < 100:  # Allow small difference due to rounding
-            validation_results['Summary_consistency'] = 'PASSED'
+            validation_results['ARN_format'] = 'INVALID'
+
+        # Date format validation
+        date_fields = ['ARNDate', 'VerificationDate']
+        for field in date_fields:
+            date_value = data.get(field, '')
+            if date_value and re.match(r'\d{2}/\d{2}/\d{4}', date_value):
+                validation_results[f'{field}_format'] = 'VALID'
+            else:
+                validation_results[f'{field}_format'] = 'INVALID'
+
+        # Tax period validation
+        tax_period = data.get('TaxPeriod', '')
+        if tax_period and re.match(r'[A-Za-z]+', tax_period):
+            validation_results['TaxPeriod_format'] = 'VALID'
         else:
-            validation_results['Summary_consistency'] = 'FAILED'
-            validation_results['Summary_difference'] = difference
-    else:
-        validation_results['Summary_consistency'] = 'NOT_AVAILABLE'
-    
-    # Overall validation score
-    passed_validations = sum(1 for v in validation_results.values() if v == 'PASSED' or v == 'VALID')
-    total_validations = len([v for v in validation_results.values() if isinstance(v, str) and v in ['PASSED', 'FAILED', 'VALID', 'INVALID']])
-    
-    if total_validations > 0:
-        validation_score = (passed_validations / total_validations) * 100
-        validation_results['Overall_Validation_Score'] = round(validation_score, 2)
-        
-        if validation_score >= 80:
-            validation_results['Overall_Status'] = 'EXCELLENT'
-        elif validation_score >= 60:
-            validation_results['Overall_Status'] = 'GOOD'
-        elif validation_score >= 40:
-            validation_results['Overall_Status'] = 'FAIR'
+            validation_results['TaxPeriod_format'] = 'INVALID'
+
+        # Financial year validation
+        fy = data.get('FinancialYear', '')
+        if fy and re.match(r'\d{4}-\d{2}', fy):
+            validation_results['FinancialYear_format'] = 'VALID'
         else:
-            validation_results['Overall_Status'] = 'POOR'
-    else:
-        validation_results['Overall_Validation_Score'] = 0
-        validation_results['Overall_Status'] = 'NOT_AVAILABLE'
-    
-    logger.info(f"Validation completed. Overall score: {validation_results.get('Overall_Validation_Score', 0)}%")
-    
-    return validation_results
+            validation_results['FinancialYear_format'] = 'INVALID'
+
+        # Summary validation
+        summary_value = safe_float(data.get('Summary_Value', 0))
+        calculated_total = safe_float(data.get('Total_Taxable_Supplies', 0))
+        if summary_value > 0 and calculated_total > 0:
+            difference = abs(summary_value - calculated_total)
+            if difference < 100:
+                validation_results['Summary_consistency'] = 'PASSED'
+            else:
+                validation_results['Summary_consistency'] = 'FAILED'
+                validation_results['Summary_difference'] = difference
+        else:
+            validation_results['Summary_consistency'] = 'NOT_AVAILABLE'
+
+        # Overall validation score
+        passed_validations = sum(1 for v in validation_results.values() if v in ('PASSED', 'VALID'))
+        total_validations = len([v for v in validation_results.values() if isinstance(v, str) and v in ('PASSED', 'FAILED', 'VALID', 'INVALID')])
+        if total_validations > 0:
+            validation_score = (passed_validations / total_validations) * 100
+            validation_results['Overall_Validation_Score'] = round(validation_score, 2)
+            if validation_score >= 80:
+                validation_results['Overall_Status'] = 'EXCELLENT'
+            elif validation_score >= 60:
+                validation_results['Overall_Status'] = 'GOOD'
+            elif validation_score >= 40:
+                validation_results['Overall_Status'] = 'FAIR'
+            else:
+                validation_results['Overall_Status'] = 'POOR'
+        else:
+            validation_results['Overall_Validation_Score'] = 0
+            validation_results['Overall_Status'] = 'NOT_AVAILABLE'
+
+        logger.info(f"Validation completed. Overall score: {validation_results.get('Overall_Validation_Score', 0)}%")
+        return validation_results
+
+    except Exception as e:
+        logger.error(f"Validation error: {str(e)}")
+        return {
+            'Overall_Validation_Score': 0,
+            'Overall_Status': 'VALIDATION_ERROR',
+            '_validation_error': str(e)
+        }
 
 def process_directory(directory_path, output_file):
     """Process all PDF files in a directory and generate comprehensive output."""
@@ -1453,9 +1674,11 @@ def process_directory(directory_path, output_file):
                 df.to_excel(writer, sheet_name='GSTR1_Data', index=False)
                 
                 # Summary statistics sheet
-                summary_df = df[['FileName', 'GSTIN', 'LegalName', 'TaxPeriod', 'FinancialYear', 
-                               'Total_Taxable_Supplies', 'Total_IGST', 'Total_CGST', 'Total_SGST', 
-                               'Total_Cess', 'Overall_Validation_Score', 'Overall_Status']].copy()
+                summary_columns = ['FileName','GSTIN','LegalName','TradeName','ARN','TaxPeriod','FinancialYear','Summary_Value','Summary_IGST','Summary_CGST','Summary_SGST','Summary_Cess','Total_B2B_Value','Total_Export_Value','Total_B2C_Value','Total_Taxable_Supplies','Total_IGST','Total_CGST','Total_SGST','Total_Cess','Overall_Validation_Score','Overall_Status','processing_status']
+
+                available = [c for c in summary_columns if c in df.columns]
+
+                summary_df = df[available].copy()
                 summary_df.to_excel(writer, sheet_name='Summary_Statistics', index=False)
                 
                 # Validation results sheet

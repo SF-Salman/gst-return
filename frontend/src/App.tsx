@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 import Footer from './components/Footer'
-import { Upload, Settings, Download, CheckCircle, ChevronDown, HelpCircle, AlertTriangle, Sun, Moon, BarChart3, Filter, X, Check, PanelLeft, ArrowUpDown, ChevronsDown, ChevronsUp } from 'lucide-react'
-
+import AppHeader from './components/Header'
+import ReconciliationPage from './components/ReconciliationPage'
+import AppSidebar from './components/Sidebar'
+import { Building2, Download, CheckCircle, ChevronDown, BarChart3, Filter, X, Check, ArrowUpDown, ChevronsDown, ChevronsUp, Upload } from 'lucide-react'
 type ParseResult = Record<string, any> & { filename?: string, __error__?: string }
 
 // Environment-based API base URL: prefers VITE_API_BASE, otherwise infer dev vs prod
@@ -13,171 +15,16 @@ const inferDefaultApiBase = () => {
 }
 const API_BASE: string = (import.meta.env.VITE_API_BASE as string) || inferDefaultApiBase()
 
-function TopBar({ theme, onToggleTheme }: { theme: 'light'|'dark'|'system', onToggleTheme: ()=>void }) {
-  return (
-    <header className="sticky top-0 z-40 h-16 bg-white/90 dark:bg-neutral-800/90 backdrop-blur-xl border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between px-6">
-      <div className="flex items-center gap-3">
-        <img src={import.meta.env.BASE_URL + 'icon-2024.png?v=2'} alt="App icon" className="w-11 h-11 object-contain bg-transparent" />
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">GST Returns Extractor</h1>
-      </div>
-      <div className="relative">
-        {(() => {
-          const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-          const isDarkActive = theme === 'dark' || (theme === 'system' && prefersDark)
-          return (
-            <button
-              aria-label={isDarkActive ? 'Switch to light theme' : 'Switch to dark theme'}
-              title={isDarkActive ? 'Light' : 'Dark'}
-              onClick={() => onToggleTheme()}
-              aria-pressed={isDarkActive}
-              className="inline-flex items-center justify-center w-10 h-10 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:border-indigo-500/60 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-            >
-              <Sun className="w-5 h-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute w-5 h-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </button>
-          )
-        })()}
-      </div>
-    </header>
-  )
-}
-
-function Sidebar({ open, onToggle, activeView, onSelectView, onOpenPreferences }: { open: boolean, onToggle: ()=>void, activeView: 'upload'|'preferences'|'help'|'disclaimer', onSelectView: (v:'upload'|'preferences'|'help'|'disclaimer')=>void, onOpenPreferences: ()=>void }) {
-  return (
-    <aside className={`hidden md:block ${open ? 'w-64' : 'w-14'} fixed top-0 bottom-0 left-0 transition-all duration-200 bg-white dark:bg-neutral-800 z-30 overflow-y-auto`}> 
-      <div className="sticky top-0 bg-white dark:bg-neutral-800 px-3 py-2 flex items-center justify-end">
-        <button
-          aria-label="Toggle sidebar"
-          onClick={onToggle}
-          className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-all cursor-pointer"
-        >
-          <PanelLeft className="w-5 h-5" />
-        </button>
-      </div>
-      <nav className="flex flex-col pt-1 py-0 px-3">
-        <div className="space-y-2">
-          <button
-            onClick={()=>onSelectView('upload')}
-            className={`w-full flex items-center gap-2 px-3.5 ${open ? 'py-2 justify-start' : 'py-1 justify-center'} text-sm rounded-xl transition-all cursor-pointer ${activeView==='upload' ? 'text-white shadow-md hover:shadow-lg hover:opacity-90' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200'}`}
-            style={activeView==='upload' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}
-          >
-            <Upload className="w-5 h-5 shrink-0" />
-            {open && <span className="font-semibold">Upload</span>}
-          </button>
-          <button
-            onClick={onOpenPreferences}
-            className={`w-full flex items-center gap-2 px-3.5 ${open ? 'py-2 justify-start' : 'py-1 justify-center'} text-sm rounded-xl transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 focus:outline-none focus-visible:outline-none focus-visible:ring-0`}
-          >
-            <Settings className="w-5 h-5 shrink-0" />
-            {open && <span className="font-semibold">Preferences</span>}
-          </button>
-          <button
-            onClick={()=>onSelectView('help')}
-            className={`w-full flex items-center gap-2 px-3.5 ${open ? 'py-2 justify-start' : 'py-1 justify-center'} text-sm rounded-xl transition-all cursor-pointer ${activeView==='help' ? 'text-white shadow-md hover:shadow-lg hover:opacity-90' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200'}`}
-            style={activeView==='help' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}
-          >
-            <HelpCircle className="w-5 h-5 shrink-0" />
-            {open && <span className="font-semibold">Help</span>}
-          </button>
-          <button
-            onClick={()=>onSelectView('disclaimer')}
-            className={`w-full flex items-center gap-2 px-3.5 ${open ? 'py-2 justify-start' : 'py-1 justify-center'} text-sm rounded-xl transition-all cursor-pointer ${activeView==='disclaimer' ? 'text-white shadow-md hover:shadow-lg hover:opacity-90' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200'}`}
-            style={activeView==='disclaimer' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}
-          >
-            <AlertTriangle className="w-5 h-5 shrink-0" />
-            {open && <span className="font-semibold">Disclaimer</span>}
-          </button>
-        </div>
-      </nav>
-    </aside>
-  )
-}
-
-function MobileNav({ activeView, onSelectView, onOpenPreferences }: { activeView: 'upload'|'preferences'|'help'|'disclaimer', onSelectView: (v:'upload'|'preferences'|'help'|'disclaimer')=>void, onOpenPreferences: ()=>void }) {
-  return (
-    <div className="md:hidden max-w-full overflow-hidden sm:max-w-none sm:overflow-visible bg-white dark:bg-neutral-800 rounded-2xl shadow-soft border border-neutral-200 dark:border-neutral-700 p-3">
-      <div className="flex flex-col sm:flex-row gap-2">
-        <button onClick={()=>onSelectView('upload')} className={`w-full sm:flex-1 sm:w-auto px-2 py-2 sm:px-3 sm:py-2 text-sm rounded-lg border cursor-pointer ${activeView==='upload' ? 'text-white border-transparent hover:opacity-90' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`} style={activeView==='upload' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}>Upload</button>
-        <button onClick={()=>{ onOpenPreferences(); }} className={`w-full sm:flex-1 sm:w-auto px-2 py-2 sm:px-3 sm:py-2 text-sm rounded-lg border cursor-pointer bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700 focus:outline-none focus-visible:outline-none focus-visible:ring-0`}>Preferences</button>
-        <button onClick={()=>onSelectView('help')} className={`w-full sm:flex-1 sm:w-auto px-2 py-2 sm:px-3 sm:py-2 text-sm rounded-lg border cursor-pointer ${activeView==='help' ? 'text-white border-transparent hover:opacity-90' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`} style={activeView==='help' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}>Help</button>
-        <button onClick={()=>onSelectView('disclaimer')} className={`w-full sm:flex-1 sm:w-auto px-2 py-2 sm:px-3 sm:py-2 text-sm rounded-lg border cursor-pointer ${activeView==='disclaimer' ? 'text-white border-transparent hover:opacity-90' : 'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700'}`} style={activeView==='disclaimer' ? { background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' } : undefined}>Disclaimer</button>
-      </div>
-    </div>
-  )
-}
-
-// Removed unused Dropdown component
-
-// Split button style dropdown with fixed width and attached arrow button
-function SplitDropdown({ value, options, onChange, widthClass = 'w-52' }: { value: string, options: string[], onChange: (v: string)=>void, widthClass?: string }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement|null>(null)
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (!ref.current) return
-      if (!ref.current.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-  return (
-    <div className={`relative ${widthClass}`} ref={ref}>
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="relative inline-flex items-center justify-start w-full h-11 px-4 pr-10 rounded-xl border border-neutral-200 bg-white text-neutral-800 transition-all hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-300 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        <span className="truncate">{value}</span>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`absolute top-2 right-3 w-4 h-4 transition-transform ${open ? 'rotate-180' : 'rotate-0'} opacity-60`}>
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      {open && (
-        <div
-          role="menu"
-          className="absolute left-0 right-0 z-40 mt-2 w-full min-w-full rounded-xl border border-neutral-200 bg-white shadow-lg overflow-hidden dark:border-neutral-700 dark:bg-neutral-800 shadow-soft max-h-48 overflow-y-auto"
-        >
-          <ul className="py-1 px-1 space-y-1">
-            {options.map(opt => (
-              <li key={opt}>
-                <button
-                  className={`relative w-full text-left px-3 py-1.5 pl-8 text-sm rounded-lg transition-colors text-neutral-800 dark:text-neutral-200 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-700`}
-                  onClick={() => { onChange(opt); setOpen(false) }}
-                >
-                  {opt === value && <Check className="absolute left-3 w-4 h-4 text-[#14cba1]" />}
-                  <span>{opt}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function UploadCard({ onProcess, onFilesSelected, progressDone = 0, progressTotal = 0 }: { onProcess: (files: File[], returnType: 'GSTR-1'|'GSTR-3B', fileFormat: 'PDF'|'JSON') => void, onFilesSelected?: (files: File[]) => void, progressDone?: number, progressTotal?: number }) {
+// UploadCard — no dropdowns; return type and file format are auto-detected in onProcess
+function UploadCard({ onProcess, onFilesSelected, progressDone = 0, progressTotal = 0 }: {
+  onProcess: (files: File[]) => void,
+  onFilesSelected?: (files: File[]) => void,
+  progressDone?: number,
+  progressTotal?: number
+}) {
   const [files, setFiles] = useState<File[]>([])
-  const [returnType, setReturnType] = useState<'GSTR-1'|'GSTR-3B'>('GSTR-3B')
-  const [fileFormat, setFileFormat] = useState<'PDF'|'JSON'>('PDF')
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement|null>(null)
-
-  // Restore Type/Format selection from localStorage
-  useEffect(() => {
-    try {
-      const savedRT = localStorage.getItem('pref_returnType')
-      if (savedRT === 'GSTR-1' || savedRT === 'GSTR-3B') setReturnType(savedRT as any)
-    } catch {}
-    try {
-      const savedFF = localStorage.getItem('pref_fileFormat')
-      if (savedFF === 'PDF' || savedFF === 'JSON') setFileFormat(savedFF as any)
-    } catch {}
-  }, [])
-
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     setIsDragging(false)
@@ -189,67 +36,61 @@ function UploadCard({ onProcess, onFilesSelected, progressDone = 0, progressTota
   }
 
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files ? Array.from(e.target.files) : []
-    setFiles(f)
-    onFilesSelected?.(f)
-  }
+  const f = e.target.files ? Array.from(e.target.files) : []
+  setFiles(f)
+  onFilesSelected?.(f)
+  e.target.value = ''   // reset so re-selecting the same file still fires onChange next time
+}
 
+  // Progress bar: show only while in-flight (done < total), hide when complete
+  const safeDone = Math.min(progressDone, progressTotal)
+  const pct = progressTotal ? Math.min(100, Math.round((safeDone / progressTotal) * 100)) : 0
+  const showProgress = progressTotal > 0 && progressDone < progressTotal
   return (
-    <>
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 px-6">
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-          <SplitDropdown value={returnType} options={['GSTR-1','GSTR-3B']} onChange={(v)=>{ setReturnType(v as any); try { localStorage.setItem('pref_returnType', v) } catch {} }} widthClass="w-full sm:w-52" />
-          <SplitDropdown value={fileFormat} options={['PDF','JSON']} onChange={(v)=>{ setFileFormat(v as any); try { localStorage.setItem('pref_fileFormat', v) } catch {} }} widthClass="w-full sm:w-52" />
-        </div>
+    <div
+      onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={handleDrop}
+      className={`mx-6 border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition-all min-h-[18rem] ${isDragging ? 'border-acc/60 bg-acc/5 dark:border-acc/60 dark:bg-acc/10' : 'border-border bg-surf'} hover:border-acc/50 cursor-pointer`}
+    >
+      <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-acc/15 to-acc/5 flex items-center justify-center">
+        <Upload className="w-8 h-8 text-acc" />
       </div>
-      <div
-        onDragOver={(e)=>{e.preventDefault(); setIsDragging(true)}}
-        onDragLeave={()=>setIsDragging(false)}
-        onDrop={handleDrop}
-        className={`mx-6 border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition-all min-h-[18rem] ${isDragging ? 'border-indigo-500/60 bg-indigo-50/30 dark:border-indigo-500/60 dark:bg-indigo-900/20' : 'border-neutral-200 bg-white dark:border-neutral-600 dark:bg-neutral-800'} hover:border-indigo-400/60 cursor-pointer`}
-      >
-        <div className="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center">
-          <Upload className="w-8 h-8 text-indigo-600" />
-        </div>
-        <p className="text-neutral-500 dark:text-neutral-300 mb-3 text-sm font-medium">Drag and drop files here or select manually</p>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 w-full">
-          <button
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-44 h-11 px-4 rounded-xl border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 cursor-pointer"
-            onClick={()=>fileInputRef.current?.click()}
-          >
-            <Upload className="w-4 h-4" /> <span className="font-semibold">Choose Files</span>
-          </button>
-          <button
-            className="inline-flex items-center justify-center gap-2 w-full sm:w-44 h-11 px-4 rounded-xl text-white hover:opacity-90 shadow-lg shadow-indigo-500/15 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer hover:shadow-xl"
-            style={{ background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' }}
-            onClick={()=>onProcess(files, returnType, fileFormat)}
-          >
+      <p className="text-tx3 mb-1 text-sm font-medium">Drag and drop files here or select manually</p>
+      <p className="text-tx3 mb-4 text-xs">Return type and format are detected automatically</p>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 sm:gap-3 w-full">
+        <button
+          className="inline-flex items-center justify-center gap-2 w-full sm:w-44 h-11 px-4 rounded-xl border border-border bg-surf text-tx hover:bg-sub shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="w-4 h-4" /> <span className="font-semibold">Choose Files</span>
+        </button>
+        <button
+          className="inline-flex items-center justify-center gap-2 w-full sm:w-44 h-11 px-4 rounded-xl text-white hover:opacity-90 shadow-lg shadow-acc/15 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer hover:shadow-xl"
+          style={{ background: 'linear-gradient(to right, var(--color-acc) 0%, #e57373 100%)' }}
+          onClick={() => onProcess(files)}
+        >
           <BarChart3 className="w-4 h-4" /> <span className="font-semibold">Extract</span>
-          </button>
-        </div>
-        <input ref={fileInputRef} className="hidden" type="file" multiple accept={fileFormat==='PDF' ? '.pdf' : '.json'} onChange={handleSelect} />
-        {files.length > 0 && (
-          <p className="mt-3 text-sm text-neutral-600 dark:text-neutral-300">{files.length} file(s) selected</p>
-        )}
-
-        {/* Inline progress bar with reserved space; clamp and guard overflow */}
-        {(() => {
-          const safeDone = Math.min(progressDone, progressTotal)
-          const pct = progressTotal ? Math.min(100, Math.round((safeDone / progressTotal) * 100)) : 0
-          const showNumbers = progressTotal > 0 && progressDone <= progressTotal
-          return (
-            <div className="mt-6">
-              <div className="flex items-center gap-3">
-                <div className={`flex-1 h-3 rounded-full overflow-hidden bg-transparent ${progressTotal ? '' : 'invisible'}`}>
-                  <div className="h-3 bg-[#14cba1] rounded-full transition-all" style={{ width: `${pct}%` }} />
-                </div>
-                <div className={`text-sm text-neutral-700 dark:text-neutral-300 whitespace-nowrap ${showNumbers ? '' : 'invisible'}`}>{safeDone}/{progressTotal}</div>
-              </div>
-            </div>
-          )
-        })()}
+        </button>
       </div>
-    </>
+      {/* Accept both PDF and JSON — type is detected at extraction time */}
+      <input ref={fileInputRef} className="hidden" type="file" multiple accept=".pdf,.json" onChange={handleSelect} />
+      {files.length > 0 && (
+        <p className="mt-3 text-sm text-tx3">{files.length} file(s) selected</p>
+      )}
+
+      {/* Progress bar — only shown while extraction is in flight */}
+      {showProgress && (
+        <div className="mt-6">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-3 rounded-full overflow-hidden bg-sub">
+              <div className="h-3 bg-[#0ea5a3] rounded-full transition-all" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="text-sm text-tx2 whitespace-nowrap">{safeDone}/{progressTotal}</div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -258,17 +99,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
   const [filterOpen, setFilterOpen] = useState(false)
   const filterRef = useRef<HTMLDivElement|null>(null)
   const tablesDropdownRef = useRef<HTMLDivElement|null>(null)
-  const [displayedTables, setDisplayedTables] = useState<string[]>(() => {
-    try {
-      const key = `pref_displayed_tables_${returnType}`
-      const raw = localStorage.getItem(key)
-      if (raw) {
-        const arr = JSON.parse(raw)
-        if (Array.isArray(arr)) return arr.filter((c: string) => selectedCategories.includes(c))
-      }
-    } catch {}
-    return [...selectedCategories]
-  })
+  const [displayedTables, setDisplayedTables] = useState<string[]>([...selectedCategories])
   // Persist collapsed per table label across filter changes
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>(() => {
     try {
@@ -315,12 +146,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     }
   }, [filterOpen])
 
-  useEffect(() => {
-    if (!results.length) {
-      setFilterOpen(false)
-      setDisplayedTables([])
-    }
-  }, [results.length])
 
   // Persist filter selection only when results exist; clear when none
   useEffect(() => {
@@ -373,18 +198,11 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
   }, [refreshNonce])
 
   // When preferences change, clear current tables so they reload with new selection
-  useEffect(() => {
-    // Sync displayed tables with latest selectedCategories; default to all
-    setDisplayedTables(prev => {
-      const next = prev.filter(c => selectedCategories.includes(c))
-      return next.length ? next : [...selectedCategories]
-    })
-    if (results.length) {
+    useEffect(() => {
+      setDisplayedTables([...selectedCategories])
       setSummaryData(null)
-    }
-  }, [JSON.stringify(selectedCategories), returnType])
-
-  // Removed unused downloadExcel; raw export handled in App
+      setEditedSummary(null)
+    }, [JSON.stringify(selectedCategories), returnType, results.length])
 
   const downloadTablesExcel = async (useFiltered?: boolean) => {
     if (!results.length) return
@@ -396,7 +214,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
         selectedCategories: selectedCatsForExport,
         summaryOverride: editedSummary || undefined,
       }
-        const res = await fetch(`${API_BASE}/api/tables_excel`, {
+      const res = await fetch(`${API_BASE}/api/tables_excel`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -412,6 +230,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
       console.error('Download tables failed', e)
     }
   }
+
   // Persist toggle per return type and reload on return type change
   useEffect(() => {
     try {
@@ -449,12 +268,8 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     }
   }
 
-  // Removed unused toggleExportOnlyFiltered helper
-
   // Tables split-button dropdown handlers (accessible menu)
   const [tablesMenuOpen, setTablesMenuOpen] = useState(false)
-  // Compact density mode removed; default to compact styling in table
-  // Collapsible categories removed per request
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (!tablesDropdownRef.current) return
@@ -550,8 +365,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     useEffect(() => {
       setTableRows(rows.map(r => ({ ...r, values: [...(r.values||[])] })))
     }, [rows, columns.join('|')])
-    // Compact density removed; use compact paddings by default
-    // Read-only table; editing removed per request
 
     const toNumber = (v: any) => {
       if (v === null || v === undefined) return NaN
@@ -573,28 +386,25 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
       return sum
     })
 
-    // Limit to 13 body rows (including Total) before enabling vertical scroll
     const MAX_BODY_ROWS = 13
     const rowsExceedLimit = (sortedIdx.length + 1) > MAX_BODY_ROWS
-    // Approximate heights (px): title + header + rows
     const TITLE_BAR_H = 28
     const HEADER_H = 28
     const ROW_H = 22
     const maxHeightPx = TITLE_BAR_H + HEADER_H + ROW_H * MAX_BODY_ROWS
 
-
     return (
-      <div className="min-w-[48rem] text-xs rounded-2xl shadow-sm bg-white dark:bg-neutral-800">
+      <div className="min-w-[48rem] text-xs rounded-2xl shadow-sm bg-surf">
         <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: rowsExceedLimit ? maxHeightPx : undefined }}>
         {label ? (
-          <div className="sticky top-0 z-10 px-6 py-1 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50/90 dark:bg-neutral-700/90 backdrop-blur-md text-sm font-semibold text-neutral-800 dark:text-neutral-100 flex items-center justify-between">
+          <div className="sticky top-0 left-0 z-10 px-6 py-1 border-b border-border bg-sub text-sm font-semibold text-tx flex items-center justify-between">
             <span className="truncate" title={label}>{label}</span>
             <div className="flex items-center gap-2">
               <div className={`relative group ${prefOpen ? 'hidden' : ''}`}>
                 <button
                   onClick={() => { const next = !isCollapsed; if (onCollapseToggle) { onCollapseToggle(next) } else { setCollapsed(next) } }}
                   aria-label={isCollapsed ? "Expand table" : "Collapse table"}
-                  className="p-1 rounded cursor-pointer hover:bg-neutral-200/70 dark:hover:bg-neutral-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="p-1 rounded cursor-pointer hover:bg-neutral-200/70 dark:hover:bg-neutral-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc"
                 >
                   <ChevronDown className={`w-4 h-4 transition-transform ${isCollapsed ? 'rotate-0' : 'rotate-180'}`} strokeWidth={2.5} />
                 </button>
@@ -606,7 +416,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                 <button
                   onClick={() => { if (onDownloadExcel && label) onDownloadExcel(label) }}
                   aria-label="Download table"
-                  className={`relative z-0 p-1 rounded cursor-pointer hover:bg-neutral-200/70 dark:hover:bg-neutral-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${prefOpen ? 'opacity-0 pointer-events-none' : ''}`}
+                  className={`relative z-0 p-1 rounded cursor-pointer hover:bg-neutral-200/70 dark:hover:bg-neutral-600/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc ${prefOpen ? 'opacity-0 pointer-events-none' : ''}`}
                 >
                   <Download className="w-4 h-4" strokeWidth={2.5} />
                 </button>
@@ -619,15 +429,14 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
         ) : null}
         {!isCollapsed && (
         <Table className="min-w-full w-full">
-          <TableHeader className="sticky top-[2rem] z-10 border-b dark:border-neutral-700 bg-white/95 dark:bg-neutral-800/95 backdrop-blur-md">
+          <TableHeader className="sticky top-[2rem] z-10 border-b dark:border-neutral-700 bg-surf">
             <TableRow>
-              <TableHead className="sticky top-[2rem] left-0 z-10 px-1 py-[2px] text-sm font-semibold bg-white/95 dark:bg-neutral-800/95 backdrop-blur-md">Period</TableHead>
-              
+              <TableHead className="sticky top-[2rem] left-0 z-10 px-1 py-[2px] text-sm font-semibold bg-surf">Period</TableHead>
               {tableRows.map((row, ri) => (
                 <TableHead
                   key={ri}
                   onClick={() => { setSortRowIdx(prev => prev === ri ? null : ri); setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc')) }}
-                  className="sticky top-[2rem] z-[5] px-1 py-[2px] text-sm font-semibold bg-white/95 dark:bg-neutral-800/95 backdrop-blur-md cursor-pointer select-none text-right"
+                  className="sticky top-[2rem] z-[5] px-1 py-[2px] text-sm font-semibold bg-surf cursor-pointer select-none text-right"
                   title="Click to sort columns by this row"
                 >
                   <span className="inline-flex items-center gap-1 justify-end w-full">
@@ -638,38 +447,37 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody className="divide-y divide-neutral-100 dark:divide-neutral-700">
+          <TableBody className="divide-y divide-border">
             {sortedIdx.map((ci) => (
-              <TableRow key={ci} className="odd:bg-white even:bg-neutral-50 dark:odd:bg-neutral-800 dark:even:bg-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all">
-                <TableCell className="px-1 py-[2px] sticky left-0 bg-white dark:bg-neutral-800 whitespace-nowrap z-10"><span className="text-[11px] leading-[1.1] text-neutral-900 dark:text-neutral-100">{columns[ci] || 'Period'}</span></TableCell>
+              <TableRow key={ci} className="odd:bg-surf even:bg-sub/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all">
+                <TableCell className="px-1 py-[2px] sticky left-0 bg-surf whitespace-nowrap z-10"><span className="text-[11px] leading-[1.1] text-tx">{columns[ci] || 'Period'}</span></TableCell>
                 {tableRows.map((row, ri) => {
                   const val = (row.values || [])[ci]
                   const isNum = Number.isFinite(toNumber(val))
                   return (
                     <TableCell key={ri} className={`px-1 py-[2px] ${isNum ? 'text-right tabular-nums' : ''}`}>
-                      <span className="text-[11px] leading-[1.1] text-neutral-900 dark:text-neutral-100">{fmt(val)}</span>
+                      <span className="text-[11px] leading-[1.1] text-tx">{fmt(val)}</span>
                     </TableCell>
                   )
                 })}
               </TableRow>
             ))}
-            <TableRow className="bg-neutral-100 dark:bg-neutral-700">
-              <TableCell className="px-1 py-[2px] text-xs font-semibold sticky left-0 bg-neutral-100 dark:bg-neutral-700 whitespace-nowrap z-10">Total</TableCell>
-              
+            <TableRow className="bg-sub">
+              <TableCell className="px-1 py-[2px] text-xs font-semibold sticky left-0 bg-sub whitespace-nowrap z-10">Total</TableCell>
               {columnTotals.map((tot, ri) => (
-                  <TableCell key={`tot-${ri}`} className="px-1 py-[2px] text-right tabular-nums">
-                    <span className="text-[11px] font-semibold text-neutral-900 dark:text-neutral-100">{fmt(tot)}</span>
-                  </TableCell>
-                ))}
+                <TableCell key={`tot-${ri}`} className="px-1 py-[2px] text-right tabular-nums">
+                  <span className="text-[11px] font-semibold text-tx">{fmt(tot)}</span>
+                </TableCell>
+              ))}
             </TableRow>
           </TableBody>
         </Table>
         )}
-        {/* Read-only table; editing disabled */}
         </div>
       </div>
     )
   }
+
   const detectMonthIndex = (label: string): number | null => {
     const lc = String(label).toLowerCase()
     for (let i = 0; i < monthOrder.length; i++) {
@@ -688,8 +496,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
     known.sort((a, b) => (a.m! - b.m!) || (a.idx - b.idx))
     return [...known.map(k=>k.idx), ...unknown.map(u=>u.idx)]
   }
-
-  // Removed unused getPeriod/getYear helpers
   const numberFmt = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 })
   const fmt = (v: any) => {
     if (v == null) return ''
@@ -711,7 +517,6 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
   }
   const selectAllTables = () => setDisplayedTables([...selectedCategories])
   const deselectAllTables = () => setDisplayedTables([])
-
 
   const getDisplayedTitles = (): string[] => {
     if (!summaryData) return []
@@ -751,15 +556,14 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
   }
 
   return (
-    <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-soft border border-neutral-200 dark:border-neutral-700 p-4 sm:p-6 font-inter">
+    <div className="bg-surf rounded-2xl shadow-soft border border-border p-4 sm:p-6 font-inter">
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        {/* moved Filter Tables to the right next to global Download */}
         <div className="flex-1 hidden sm:block" />
         <div className="relative group">
           <button
             onClick={toggleAllTablesCollapsed}
             aria-label={allCollapsed ? "Expand all tables" : "Collapse all tables"}
-            className="inline-flex items-center justify-center p-2 rounded-lg text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+            className="inline-flex items-center justify-center p-2 rounded-lg text-tx2 hover:text-tx transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
           >
             {allCollapsed ? <ChevronsDown className="w-5 h-5" strokeWidth={2.5} /> : <ChevronsUp className="w-5 h-5" strokeWidth={2.5} />}
           </button>
@@ -769,31 +573,31 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
         </div>
         <div className="relative group" ref={filterRef} style={{ display: results.length ? 'block' : 'none' }}>
           <button
-            onClick={()=>setFilterOpen(!filterOpen)}
+            onClick={() => setFilterOpen(!filterOpen)}
             aria-label="Filter tables"
-            className="inline-flex items-center justify-center p-2 rounded-lg text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+            className="inline-flex items-center justify-center p-2 rounded-lg text-tx2 hover:text-tx transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
           >
             <Filter className="w-5 h-5" strokeWidth={2.5} />
           </button>
           <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-40">Filter tables</div>
           {filterOpen && (
-            <div className="absolute right-0 z-40 mt-2 mb-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-soft p-3"
+            <div className="absolute right-0 z-40 mt-2 mb-4 rounded-xl border border-border bg-surf shadow-soft p-3"
                  style={{ minWidth: `${Math.max(...selectedCategories.map(c => String(c).length), 24) + 8}ch` }}>
               {(() => {
                 const allSelected = selectedCategories.length > 0 && displayedTables.length === selectedCategories.length
                 const noneSelected = displayedTables.length === 0
                 return (
                   <div className="flex items-center justify-between mb-2">
-                    <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden mx-2">
+                    <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-border overflow-hidden mx-2">
                       <button
                         onClick={selectAllTables}
-                        className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                        className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
                       >
                         All
                       </button>
                       <button
                         onClick={deselectAllTables}
-                        className={`text-xs font-semibold px-2 py-0.5 border-l border-neutral-200 dark:border-neutral-700 cursor-pointer ${noneSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
+                        className={`text-xs font-semibold px-2 py-0.5 border-l border-border cursor-pointer ${noneSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
                       >
                         None
                       </button>
@@ -803,21 +607,21 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
               })()}
               <div className="max-h-64 overflow-y-auto space-y-0.5 mb-2">
                 {selectedCategories.length === 0 ? (
-                   <div className="px-2 py-1 text-xs text-neutral-600 dark:text-neutral-300">
-                     No matching tables for current preferences. Adjust selections under Preferences.
-                   </div>
-                 ) : (
-                   selectedCategories.map((cat) => {
-                     const checked = displayedTables.includes(cat)
-                     return (
-                       <label key={cat} className="flex items-center gap-1.5 text-sm px-2 py-0.5 rounded hover:bg-neutral-50 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap">
-                         <input type="checkbox" className="sr-only" checked={checked} onChange={()=>toggleTable(cat)} />
-                         <Check className={`w-4 h-4 ${checked ? 'text-[#14cba1]' : 'opacity-0'}`} aria-hidden="true" />
-                         <span className="text-neutral-800 dark:text-neutral-200">{cat}</span>
-                       </label>
-                     )
-                   })
-                 )}
+                  <div className="px-2 py-1 text-xs text-tx3">
+                    No matching tables for current preferences. Adjust selections under Preferences.
+                  </div>
+                ) : (
+                  selectedCategories.map((cat) => {
+                    const checked = displayedTables.includes(cat)
+                    return (
+                      <label key={cat} className="flex items-center gap-1.5 text-sm px-2 py-0.5 rounded hover:bg-sub cursor-pointer whitespace-nowrap">
+                        <input type="checkbox" className="sr-only" checked={checked} onChange={() => toggleTable(cat)} />
+                        <Check className={`w-4 h-4 ${checked ? 'text-[#0ea5a3]' : 'opacity-0'}`} aria-hidden="true" />
+                        <span className="text-tx">{cat}</span>
+                      </label>
+                    )
+                  })
+                )}
               </div>
             </div>
           )}
@@ -825,11 +629,11 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
         <div ref={tablesDropdownRef} className={prefOpen ? 'hidden' : 'relative inline-flex w-auto z-30'}>
           <div className="relative group">
             <button
-              onClick={()=>setTablesMenuOpen(v=>!v)}
+              onClick={() => setTablesMenuOpen(v => !v)}
               aria-label="Download previewed tables"
               aria-haspopup="menu"
               aria-expanded={tablesMenuOpen}
-              className="inline-flex items-center justify-center p-2 rounded-lg text-[#5b35fc] hover:text-[#8c52ff] transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5b35fc] cursor-pointer"
+              className="inline-flex items-center justify-center p-2 rounded-lg text-acc hover:opacity-70 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
             >
               <Download className="w-5 h-5" strokeWidth={2.5} />
             </button>
@@ -841,15 +645,15 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
             <div
               role="menu"
               aria-label="Tables export options"
-              className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-neutral-200 bg-white dark:bg-neutral-800 dark:border-neutral-700 shadow-lg overflow-hidden shadow-soft z-[100] max-h-48 overflow-y-auto"
+              className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-border bg-surf shadow-lg overflow-hidden shadow-soft z-[100] max-h-48 overflow-y-auto"
             >
               <ul className="py-1 px-1 space-y-1">
                 <li>
                   <button
                     role="menuitem"
                     tabIndex={0}
-                    onClick={()=>{ setExportOnlyFiltered(true); setTablesMenuOpen(false); downloadTablesExcel(true); }}
-                    className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap"
+                    onClick={() => { setExportOnlyFiltered(true); setTablesMenuOpen(false); downloadTablesExcel(true); }}
+                    className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-tx hover:bg-sub cursor-pointer whitespace-nowrap"
                   >
                     Download filtered tables only
                   </button>
@@ -858,8 +662,8 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                   <button
                     role="menuitem"
                     tabIndex={0}
-                    onClick={()=>{ setExportOnlyFiltered(false); setTablesMenuOpen(false); downloadTablesExcel(false); }}
-                    className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer whitespace-nowrap"
+                    onClick={() => { setExportOnlyFiltered(false); setTablesMenuOpen(false); downloadTablesExcel(false); }}
+                    className="w-full text-left px-3 py-1.5 rounded-lg text-sm text-tx hover:bg-sub cursor-pointer whitespace-nowrap"
                   >
                     Download all preferred tables
                   </button>
@@ -869,35 +673,33 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
           )}
         </div>
       </div>
-      {!results.length && <p className="text-sm text-neutral-600 dark:text-neutral-300">No results yet.</p>}
+      {!results.length && <p className="text-sm text-tx3">No results yet.</p>}
       {!!results.length && (
         <div className="space-y-6">
-          {/* Summary tab removed */}
-            <>
-              <h3 className="text-base font-semibold text-neutral-800 dark:text-neutral-100">Preview results</h3>
-              {/* Hint above tables */}
-              <div className="text-xs text-neutral-600 dark:text-neutral-300">Choose preferred tables from the Preferences menu to refine the list.</div>
-              {!summaryData && (
-                <div className="rounded-xl border border-neutral-100 dark:border-neutral-700/50 bg-white dark:bg-neutral-800 p-4 text-sm text-neutral-700 dark:text-neutral-300">
-                  Tables will appear here after processing.
-                </div>
-              )}
-              {summaryData && (
-                <div className="space-y-6">
-                  {displayedTables.length === 0 && (
-                    <div className="rounded-xl border border-neutral-100 dark:border-neutral-700/50 bg-white dark:bg-neutral-800 p-3 text-sm text-neutral-700 dark:text-neutral-300">
-                      {selectedCategories.length === 0
-                        ? 'No matching tables for current preferences. Adjust selections under Preferences.'
-                        : 'No tables selected. Use Filter or Preferences to choose tables.'}
-                    </div>
-                  )}
-                  {summaryData.sections.map((section, si) => {
-                    const visibleCats = (section.categories || []).filter((cat) => displayedTables.includes(String(cat.name || '')))
-                    if (!visibleCats.length) return null
-                    return (
-                      <div key={si} className="space-y-3">
-                        {visibleCats.map((cat, ci) => (
-                          <div key={ci} className="space-y-2">
+          <>
+            <h3 className="text-base font-semibold text-tx">Preview results</h3>
+            <div className="text-xs text-tx3">Choose preferred tables from the Preferences menu to refine the list.</div>
+            {!summaryData && (
+              <div className="rounded-xl border border-border bg-surf p-4 text-sm text-tx2">
+                Tables will appear here after processing.
+              </div>
+            )}
+            {summaryData && (
+              <div className="space-y-6">
+                {displayedTables.length === 0 && (
+                  <div className="rounded-xl border border-border bg-surf p-3 text-sm text-tx2">
+                    {selectedCategories.length === 0
+                      ? 'No matching tables for current preferences. Adjust selections under Preferences.'
+                      : 'No tables selected. Use Filter or Preferences to choose tables.'}
+                  </div>
+                )}
+                {summaryData.sections.map((section, si) => {
+                  const visibleCats = (section.categories || []).filter((cat) => displayedTables.includes(String(cat.name || '')))
+                  if (!visibleCats.length) return null
+                  return (
+                    <div key={si} className="space-y-3">
+                      {visibleCats.map((cat, ci) => (
+                        <div key={ci} className="space-y-2">
                           {/* Mobile list view (transposed) */}
                           <div className="md:hidden space-y-2">
                             {(() => {
@@ -911,16 +713,16 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                                       const sn = sub.name || ''
                                       const rawTitle = `${sec} - ${cn} - ${sn}`
                                       const title = rawTitle.replace(/^[\s-]+|[\s-]+$/g, '')
-                                      return (<div className="font-semibold text-neutral-800 dark:text-neutral-200">{title}</div>)
+                                      return (<div className="font-semibold text-tx">{title}</div>)
                                     })()}
                                     {sortedIdx.map((ci) => (
-                                      <div key={ci} className="rounded-xl border bg-white dark:bg-neutral-800 dark:border-neutral-700 p-3 shadow-md hover:shadow-lg transition-all">
-                                        <div className="font-medium mb-2 text-neutral-800 dark:text-neutral-200">{summaryData.columns[ci] || 'Period'}</div>
+                                      <div key={ci} className="rounded-xl border bg-surf dark:border-neutral-700 p-3 shadow-md hover:shadow-lg transition-all">
+                                        <div className="font-medium mb-2 text-tx">{summaryData.columns[ci] || 'Period'}</div>
                                         <div className="space-y-1">
                                           {sub.rows.map((row, ri) => (
                                             <div key={ri} className="flex items-center justify-between text-xs">
-                                              <span className="text-neutral-600 dark:text-neutral-300 whitespace-nowrap mr-2">{row.description || row.key}</span>
-                                              <span className="font-medium whitespace-nowrap text-neutral-900 dark:text-neutral-100 text-right tabular-nums">{fmt((row.values || [])[ci])}</span>
+                                              <span className="text-tx3 whitespace-nowrap mr-2">{row.description || row.key}</span>
+                                              <span className="font-medium whitespace-nowrap text-tx text-right tabular-nums">{fmt((row.values || [])[ci])}</span>
                                             </div>
                                           ))}
                                         </div>
@@ -930,26 +732,28 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                                 ))
                               }
                               const rows = cat.rows || []
-                              {(() => {
-                                const sec = section.heading || 'Section'
-                                const cn = cat.name || 'Category'
-                                const rawTitle = `${sec} - ${cn}`
-                                const title = rawTitle.replace(/^[\s-]+|[\s-]+$/g, '')
-                                return (<div className="font-semibold text-neutral-800 dark:text-neutral-200">{title}</div>)
-                              })()}
-                              return sortedIdx.map((ci) => (
-                                <div key={ci} className="rounded-xl border bg-white dark:bg-neutral-800 dark:border-neutral-700 p-3 shadow-md hover:shadow-lg transition-all">
-                                  <div className="font-medium mb-2 text-neutral-800 dark:text-neutral-200">{summaryData.columns[ci] || 'Period'}</div>
-                                  <div className="space-y-1">
-                                    {rows.map((row, ri) => (
-                                      <div key={ri} className="flex items-center justify-between text-xs">
-                                        <span className="text-neutral-600 dark:text-neutral-300 whitespace-nowrap mr-2">{row.description || row.key}</span>
-                                        <span className="font-medium whitespace-nowrap text-neutral-900 dark:text-neutral-100 text-right tabular-nums">{fmt((row.values || [])[ci])}</span>
+                              const sec = section.heading || 'Section'
+                              const cn = cat.name || 'Category'
+                              const rawTitle = `${sec} - ${cn}`
+                              const title = rawTitle.replace(/^[\s-]+|[\s-]+$/g, '')
+                              return (
+                                <div className="space-y-2">
+                                  <div className="font-semibold text-tx">{title}</div>
+                                  {sortedIdx.map((ci) => (
+                                    <div key={ci} className="rounded-xl border bg-surf dark:border-neutral-700 p-3 shadow-md hover:shadow-lg transition-all">
+                                      <div className="font-medium mb-2 text-tx">{summaryData.columns[ci] || 'Period'}</div>
+                                      <div className="space-y-1">
+                                        {rows.map((row, ri) => (
+                                          <div key={ri} className="flex items-center justify-between text-xs">
+                                            <span className="text-tx3 whitespace-nowrap mr-2">{row.description || row.key}</span>
+                                            <span className="font-medium whitespace-nowrap text-tx text-right tabular-nums">{fmt((row.values || [])[ci])}</span>
+                                          </div>
+                                        ))}
                                       </div>
-                                    ))}
-                                  </div>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))
+                              )
                             })()}
                           </div>
                           {/* Desktop/tablet table (transposed) */}
@@ -970,7 +774,7 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                                         label={title}
                                         onDownloadExcel={() => downloadSingleTableExcel(String(cat.name || '').trim())}
                                         collapsed={!!collapsedMap[title]}
-                                        onCollapseToggle={(next)=> setCollapsedMap(prev => ({...prev, [title]: next}))}
+                                        onCollapseToggle={(next) => setCollapsedMap(prev => ({ ...prev, [title]: next }))}
                                         prefOpen={prefOpen}
                                       />
                                     </div>
@@ -990,33 +794,75 @@ function ResultsTabs({ results, includeFailedInExcel = true, returnType, selecte
                                     label={title}
                                     onDownloadExcel={() => downloadSingleTableExcel(String(cat.name || '').trim())}
                                     collapsed={!!collapsedMap[title]}
-                                    onCollapseToggle={(next)=> setCollapsedMap(prev => ({...prev, [title]: next}))}
+                                    onCollapseToggle={(next) => setCollapsedMap(prev => ({ ...prev, [title]: next }))}
                                     prefOpen={prefOpen}
                                   />
                                 </div>
                               )
                             })()}
                           </div>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </>
-          {/* JSON tab removed */}
-          
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
         </div>
       )}
     </div>
   )
 }
 
-
-import HelpContent from './components/HelpContent'
-import DisclaimerContent from './components/DisclaimerContent'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './components/ui/table'
+
+// Auto-detect return type and file format from a single File object
+async function detectReturnTypeAndFormat(file: File): Promise<{ returnType: 'GSTR-1'|'GSTR-3B'|'GSTR-2B', fileFormat: 'PDF'|'JSON' }> {
+  const name = file.name.toLowerCase()
+
+  // Detect format by extension
+  const isJson = name.endsWith('.json')
+  const fileFormat: 'PDF'|'JSON' = isJson ? 'JSON' : 'PDF'
+
+  if (!isJson) {
+    // For PDFs, detect return type from filename keywords
+    if (name.includes('gstr1') || name.includes('gstr-1') || name.includes('gstr_1')) {
+      return { returnType: 'GSTR-1', fileFormat }
+    }
+    if (name.includes('gstr2b') || name.includes('gstr-2b') || name.includes('gstr_2b')) {
+      return { returnType: 'GSTR-2B', fileFormat: 'PDF' }
+    }
+    // Default PDF to GSTR-3B
+    return { returnType: 'GSTR-3B', fileFormat }
+  }
+
+  // For JSON, inspect content to detect type
+  try {
+    const text = await file.text()
+    const data = JSON.parse(text)
+    // GSTR-2B typically has 'data.docDtls' or specific 2B keys
+    if (data?.data?.docDtls || data?.docDtls || name.includes('2b')) {
+      return { returnType: 'GSTR-2B', fileFormat }
+    }
+    // GSTR-1 has b2b, b2cl, cdnr etc at root or under data
+    const payload = data?.data ?? data
+    if (payload?.b2b !== undefined || payload?.b2cl !== undefined || payload?.cdnr !== undefined || payload?.exp !== undefined) {
+      return { returnType: 'GSTR-1', fileFormat }
+    }
+    // GSTR-3B has sup_details or inward_sup
+    if (payload?.sup_details !== undefined || payload?.inward_sup !== undefined || payload?.itc_elg !== undefined) {
+      return { returnType: 'GSTR-3B', fileFormat }
+    }
+  } catch {
+    // If JSON parse fails, fall through to filename check
+  }
+
+  // Filename fallback for JSON
+  if (name.includes('gstr1') || name.includes('gstr-1')) return { returnType: 'GSTR-1', fileFormat }
+  if (name.includes('gstr2b') || name.includes('gstr-2b') || name.includes('2b')) return { returnType: 'GSTR-2B', fileFormat }
+  return { returnType: 'GSTR-3B', fileFormat }
+}
 
 function App() {
   const [theme, setTheme] = useState<'light'|'dark'|'system'>(() => {
@@ -1034,22 +880,13 @@ function App() {
     } catch {}
     return false
   })
-  const [activeView, setActiveView] = useState<'upload'|'preferences'|'help'|'disclaimer'>(() => {
-    try {
-      const v = localStorage.getItem('active_view')
-      if (v === 'upload' || v === 'preferences' || v === 'help' || v === 'disclaimer') return v as 'upload'|'preferences'|'help'|'disclaimer'
-    } catch {}
-    return 'upload'
-  })
+  const [activeView, setActiveView] = useState<'upload' | 'reconciliation'>('upload')
   const [prefOpen, setPrefOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<ParseResult[]>([])
   const [progress, setProgress] = useState<{done:number,total:number}>({done:0,total:0})
   const [includeFailedInExcel] = useState(true)
-  const [lastReturnType, setLastReturnType] = useState<'GSTR-1'|'GSTR-3B'>('GSTR-3B')
-
-  // Schema categories and user-selected tables preferences
-  // Removed unused schemaCategories state
+  const [lastReturnType, setLastReturnType] = useState<'GSTR-1'|'GSTR-3B'|'GSTR-2B'>('GSTR-3B')
   const [selectedTables, setSelectedTables] = useState<{['GSTR-1']: string[], ['GSTR-3B']: string[]}>({ 'GSTR-1': [], 'GSTR-3B': [] })
   const [schemaStructure, setSchemaStructure] = useState<{['GSTR-1']: Array<{ heading: string, categories: Array<{ name: string, subcategories?: string[] }> }>, ['GSTR-3B']: Array<{ heading: string, categories: Array<{ name: string, subcategories?: string[] }> }>}>({ 'GSTR-1': [], 'GSTR-3B': [] })
   const [activeSettingsTab, setActiveSettingsTab] = useState<'GSTR-1'|'GSTR-3B'>('GSTR-1')
@@ -1062,8 +899,9 @@ function App() {
   const prevFocusedElRef = useRef<HTMLElement|null>(null)
   const abortControllerRef = useRef<AbortController|null>(null)
   const processIdRef = useRef(0)
+  
 
-  // Lock page scroll when Preferences modal is open, allow modal to scroll
+  // Lock page scroll when Preferences modal is open
   useEffect(() => {
     try {
       const html = document.documentElement
@@ -1078,10 +916,8 @@ function App() {
     } catch {}
     return () => {
       try {
-        const html = document.documentElement
-        const body = document.body
-        html.style.overflow = ''
-        body.style.overflow = ''
+        document.documentElement.style.overflow = ''
+        document.body.style.overflow = ''
       } catch {}
     }
   }, [prefOpen])
@@ -1089,7 +925,6 @@ function App() {
   // Focus trap and Escape to close for Preferences modal
   useEffect(() => {
     if (!prefOpen) {
-      // Restore focus to previously focused element when closing
       try { prevFocusedElRef.current?.focus() } catch {}
       return
     }
@@ -1106,7 +941,6 @@ function App() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault()
-        // Discard draft changes when closing via Escape
         try { setDraftSelectedTables(selectedTables) } catch {}
         setPrefOpen(false)
         return
@@ -1116,26 +950,15 @@ function App() {
         const active = document.activeElement as HTMLElement
         const idx = focusables.indexOf(active)
         if (e.shiftKey) {
-          if (idx <= 0) {
-            e.preventDefault()
-            focusables[focusables.length - 1].focus()
-          }
+          if (idx <= 0) { e.preventDefault(); focusables[focusables.length - 1].focus() }
         } else {
-          if (idx === focusables.length - 1) {
-            e.preventDefault()
-            focusables[0].focus()
-          }
+          if (idx === focusables.length - 1) { e.preventDefault(); focusables[0].focus() }
         }
       }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [prefOpen])
-
-  // Persist which main view was last active
-  useEffect(() => {
-    try { localStorage.setItem('active_view', activeView) } catch {}
-  }, [activeView])
 
   // Persist sidebar open/collapse state
   useEffect(() => {
@@ -1151,8 +974,6 @@ function App() {
       root.classList.toggle('dark', isDark)
       root.setAttribute('data-theme', isDark ? 'dark' : 'light')
       try { localStorage.setItem('theme', theme) } catch {}
-      console.log('Applied theme:', theme, 'isDark:', isDark)
-      console.log('html classes after apply:', root.className)
     }
     apply()
     const mm = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null
@@ -1162,21 +983,8 @@ function App() {
   }, [theme])
 
   const toggleTheme = () => {
-    console.log('toggleTheme: clicked')
-    setTheme(prev => {
-      const next = prev === 'dark' ? 'light' : 'dark'
-      console.log('toggleTheme: prev =', prev, 'next =', next)
-      return next
-    })
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
   }
-
-  // Debug each render
-  useEffect(() => {
-    try {
-      console.log('render theme:', theme)
-      console.log('html classes on render:', document.documentElement.className)
-    } catch {}
-  })
 
   useEffect(() => {
     const loadPrefs = (rt: 'GSTR-1'|'GSTR-3B', cats: string[]) => {
@@ -1185,25 +993,27 @@ function App() {
         const saved = localStorage.getItem(key)
         if (saved) {
           const arr = JSON.parse(saved)
-          if (Array.isArray(arr)) return arr.filter((c: string) => cats.includes(c))
+          if (Array.isArray(arr)) {
+            const valid = arr.filter((c: string) => cats.includes(c))
+            // Add any new categories not previously saved
+            const newCats = cats.filter((c: string) => !arr.includes(c))
+            return [...valid, ...newCats]
+          }
         }
       } catch {}
       return cats
     }
     const fetchCategories = async () => {
       try {
-    const resCats = await fetch(`${API_BASE}/api/schema_categories`)
+        const resCats = await fetch(`${API_BASE}/api/schema_categories`)
         const dataCats = await resCats.json()
         const g1 = (dataCats['GSTR-1']?.categories ?? []) as string[]
         const g3b = (dataCats['GSTR-3B']?.categories ?? []) as string[]
         setSelectedTables({ 'GSTR-1': loadPrefs('GSTR-1', g1), 'GSTR-3B': loadPrefs('GSTR-3B', g3b) })
-        // Load structured schema for tabulated preferences
-    const resStruct = await fetch(`${API_BASE}/api/schema_structure`)
+        const resStruct = await fetch(`${API_BASE}/api/schema_structure`)
         const dataStruct = await resStruct.json()
         setSchemaStructure({ 'GSTR-1': dataStruct['GSTR-1'] ?? [], 'GSTR-3B': dataStruct['GSTR-3B'] ?? [] })
-        // Initialize drafts and expanded states from saved selections
         setDraftSelectedTables({ 'GSTR-1': loadPrefs('GSTR-1', g1), 'GSTR-3B': loadPrefs('GSTR-3B', g3b) })
-        // Collapse all sections by default
         setExpandedSections({
           'GSTR-1': Object.fromEntries((dataStruct['GSTR-1'] ?? []).map((s: any) => [s.heading || 'Section', false])),
           'GSTR-3B': Object.fromEntries((dataStruct['GSTR-3B'] ?? []).map((s: any) => [s.heading || 'Section', false])),
@@ -1228,31 +1038,20 @@ function App() {
     const cats = section ? section.categories.map(c => c.name) : []
     setDraftSelectedTables(prev => {
       const current = new Set(prev[rt])
-      if (selectAll) {
-        cats.forEach(c => current.add(c))
-      } else {
-        cats.forEach(c => current.delete(c))
-      }
+      if (selectAll) { cats.forEach(c => current.add(c)) } else { cats.forEach(c => current.delete(c)) }
       return { ...prev, [rt]: Array.from(current) }
     })
   }
 
   const toggleExpand = (rt: 'GSTR-1'|'GSTR-3B', heading: string) => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [rt]: { ...prev[rt], [heading]: !prev[rt][heading] }
-    }))
+    setExpandedSections(prev => ({ ...prev, [rt]: { ...prev[rt], [heading]: !prev[rt][heading] } }))
   }
 
-  // Toggle all sections for a given return type
   const toggleAllExpanded = (rt: 'GSTR-1'|'GSTR-3B') => {
     const sections = schemaStructure[rt] || []
     const headings = sections.map(s => s.heading || 'Section')
     const allOpen = headings.length > 0 && headings.every(h => !!expandedSections[rt]?.[h])
-    setExpandedSections(prev => ({
-      ...prev,
-      [rt]: Object.fromEntries(headings.map(h => [h, !allOpen]))
-    }))
+    setExpandedSections(prev => ({ ...prev, [rt]: Object.fromEntries(headings.map(h => [h, !allOpen])) }))
   }
 
   const savePreferences = () => {
@@ -1261,7 +1060,6 @@ function App() {
       localStorage.setItem('pref_tables_gstr1', JSON.stringify(draftSelectedTables['GSTR-1']))
       localStorage.setItem('pref_tables_gstr3b', JSON.stringify(draftSelectedTables['GSTR-3B']))
     } catch {}
-    // Trigger tables reload with latest preferences
     setRefreshNonce(n => n + 1)
     setToastText('Preferences saved')
     setShowToast(true)
@@ -1272,15 +1070,15 @@ function App() {
     setDraftSelectedTables(selectedTables)
   }
 
-  
-
-  const onProcess = async (files: File[], returnType: 'GSTR-1'|'GSTR-3B', fileFormat: 'PDF'|'JSON') => {
+    // Auto-detect return type and format per file, then process
+  const onProcess = async (files: File[]) => {
     if (!files.length) {
       setToastText('Select returns to extract')
       setShowToast(true)
       setTimeout(() => setShowToast(false), 1600)
       return
     }
+
     const myId = ++processIdRef.current
     try { abortControllerRef.current?.abort() } catch {}
     abortControllerRef.current = new AbortController()
@@ -1288,40 +1086,56 @@ function App() {
 
     setLoading(true)
     setResults([])
-    setProgress({done:0,total:files.length})
-    setLastReturnType(returnType)
+    setProgress({ done: 0, total: files.length })
+    let dominantSet = false
+
     try {
+      const allResults: ParseResult[] = []
       const tasks = files.map(async (file) => {
-        try {
-          let res: Response
-          if (fileFormat === 'PDF') {
+  try {
+    const { returnType, fileFormat } = await detectReturnTypeAndFormat(file)
+    if (!dominantSet) {
+      dominantSet = true
+      setLastReturnType(returnType)
+    }
+
+    let res: Response
+    if (fileFormat === 'PDF') {
             const form = new FormData()
             form.append('file', file)
-            const url = returnType === 'GSTR-1' ? `${API_BASE}/api/gstr1/pdf` : `${API_BASE}/api/gstr3b/pdf`
+            const url = returnType === 'GSTR-1'
+              ? `${API_BASE}/api/gstr1/pdf`
+              : `${API_BASE}/api/gstr3b/pdf`
             res = await fetch(url, { method: 'POST', body: form, signal })
           } else {
             const text = await file.text()
             let payload: any
-            try { payload = JSON.parse(text) } catch (e) { throw new Error('Invalid JSON file') }
-            const url = returnType === 'GSTR-1' ? `${API_BASE}/api/gstr1/json` : `${API_BASE}/api/gstr3b/json`
+            try { payload = JSON.parse(text) } catch { throw new Error('Invalid JSON file') }
+            const url = returnType === 'GSTR-1'
+              ? `${API_BASE}/api/gstr1/json`
+              : returnType === 'GSTR-2B'
+              ? `${API_BASE}/api/gstr2b/json`
+              : `${API_BASE}/api/gstr3b/json`
             res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal })
           }
+
           const data = await res.json()
-          const enriched = { ...data, filename: file.name }
-          if (processIdRef.current === myId) {
-            setResults(prev => [...prev, enriched])
-          }
+          allResults.push({ ...data, filename: file.name })
         } catch (err: any) {
-          if (processIdRef.current === myId) {
-            setResults(prev => [...prev, { filename: file.name, __error__: err?.message || 'Failed to process file' }])
-          }
+          allResults.push({ filename: file.name, __error__: err?.message || 'Failed to process file' })
         } finally {
           if (processIdRef.current === myId) {
             setProgress(prev => ({ done: prev.done + 1, total: prev.total }))
           }
         }
       })
+
       await Promise.all(tasks)
+
+      if (processIdRef.current === myId) {
+        setResults(allResults)
+        setRefreshNonce(n => n + 1)
+      }
     } catch (e) {
       console.error(e)
     } finally {
@@ -1332,13 +1146,13 @@ function App() {
     }
   }
 
-  // Download raw parsed data (JSON -> Excel) aligned to progress/status section
+  // Download raw parsed data (JSON -> Excel)
   const downloadExcel = async () => {
     if (!results.length) return
-        const res = await fetch(`${API_BASE}/api/excel`, {
+    const res = await fetch(`${API_BASE}/api/excel`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(includeFailedInExcel ? results : results.filter(r=>!r.__error__))
+      body: JSON.stringify(includeFailedInExcel ? results : results.filter(r => !r.__error__))
     })
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
@@ -1350,87 +1164,130 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col font-inter text-neutral-900 dark:text-neutral-100 bg-neutral-50 dark:bg-neutral-900">
-      <div className="w-full max-w-full p-0 flex flex-col md:flex-row gap-0 flex-1">
-        <Sidebar open={sidebarOpen} onToggle={()=>setSidebarOpen(!sidebarOpen)} activeView={activeView} onSelectView={setActiveView} onOpenPreferences={()=>{ setPrefOpen(true) }} />
-        <div className={`${sidebarOpen ? 'md:ml-64' : 'md:ml-14'} flex-1 min-w-0 space-y-4 sm:space-y-6`}>
-          <TopBar theme={theme} onToggleTheme={toggleTheme} />
-          <MobileNav activeView={activeView} onSelectView={setActiveView} onOpenPreferences={()=>{ setPrefOpen(true) }} />
+    <div className="min-h-screen flex font-inter text-tx bg-bg">
+      <AppSidebar
+        activeView={activeView}
+        onSelectView={setActiveView}
+        isCollapsed={!sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
+      <div className="flex-1 min-w-0 flex flex-col">
+        <AppHeader theme={theme} onToggleTheme={toggleTheme} statusLabel={results.length ? `${results.length} file(s) processed` : null} />
+        <div className="h-11 flex items-center justify-between px-4 sm:px-6 bg-sub border-b border-border">
+  <div className="flex items-center gap-2 text-tx3">
+    <Building2 size={14} className="text-acc" />
+    <span className="font-mono text-[11px] uppercase tracking-[0.15em]">Engagement</span>
+  </div>
+  <button
+    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-surf text-xs font-medium text-tx3 hover:text-tx hover:border-acc/50 transition-all duration-200 cursor-pointer"
+  >
+    <Building2 size={14} className="text-acc" />
+    Pick engagement...
+    <ChevronDown size={14} />
+  </button>
+</div>
+        <div className="flex-1 space-y-4 sm:space-y-6 py-4 sm:py-6">
           {activeView === 'upload' && (
-            <>
-              <UploadCard onProcess={onProcess} onFilesSelected={()=>{
-                // Abort any in-flight extraction and reset state on new selection
-                try { abortControllerRef.current?.abort() } catch {}
-                abortControllerRef.current = null
-                processIdRef.current++
-                setResults([])
-                setProgress({done:0,total:0})
-                setLoading(false)
-              }} progressDone={progress.done} progressTotal={progress.total} />
-              <div className="space-y-3">
-                <div className="mx-6 bg-white rounded-2xl shadow-soft border border-neutral-200 px-6 py-4 dark:bg-neutral-800 dark:border-neutral-700">
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-between gap-2 sm:gap-0 max-w-full overflow-hidden">
-                    <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">Raw Data Export</div>
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
-                      <div className="relative group">
-                        <button
-                          onClick={downloadExcel}
-                          aria-label="Download raw data"
-                          disabled={!(progress.total > 0 && progress.done >= progress.total)}
-                          aria-disabled={!(progress.total > 0 && progress.done >= progress.total)}
-                          className="inline-flex items-center justify-center p-2 rounded-lg text-[#14cba1] hover:text-[#14cba1]/80 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#14cba1] disabled:opacity-60 disabled:cursor-not-allowed w-auto cursor-pointer"
-                        >
-                          <Download className="w-5 h-5" strokeWidth={2.5} />
-                        </button>
-                        <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-40">
-                          Download the extracted returns as a single table
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+  <>
+    <UploadCard
+      onProcess={onProcess}
+      onFilesSelected={() => {
+        try { abortControllerRef.current?.abort() } catch {}
+        abortControllerRef.current = null
+        processIdRef.current++
+        setResults([])
+        setProgress({ done: 0, total: 0 })
+        setLoading(false)
+      }}
+      progressDone={progress.done}
+      progressTotal={progress.total}
+    />
+    <div className="space-y-3">
+      <div className="mx-6 bg-white rounded-2xl shadow-soft border border-neutral-200 px-6 py-4 dark:bg-neutral-800 dark:border-neutral-700">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start sm:justify-between gap-2 sm:gap-0 max-w-full overflow-hidden">
+          <div className="text-sm font-semibold text-tx">Raw Data Export</div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="relative group">
+              <button
+                onClick={downloadExcel}
+                aria-label="Download raw data"
+                disabled={!(progress.total > 0 && progress.done >= progress.total)}
+                className="inline-flex items-center justify-center p-2 rounded-lg text-[#0ea5a3] hover:text-[#0ea5a3]/80 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0ea5a3] disabled:opacity-60 disabled:cursor-not-allowed w-auto cursor-pointer"
+              >
+                <Download className="w-5 h-5" strokeWidth={2.5} />
+              </button>
+              <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-40">
+                Download the extracted returns as a single table
               </div>
-              <div className="mx-6">
-                <ResultsTabs results={results} includeFailedInExcel={includeFailedInExcel} returnType={lastReturnType} selectedCategories={selectedTables[lastReturnType]} loading={loading} refreshNonce={refreshNonce} prefOpen={prefOpen} />
-              </div>
-            </>
-          )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="mx-6 flex justify-end">
+      <button
+        onClick={() => setPrefOpen(true)}
+        className="inline-flex items-center gap-2 px-4 h-9 rounded-xl border border-border bg-surf text-tx text-xs font-semibold hover:bg-sub transition cursor-pointer"
+      >
+        <ChevronsDown className="w-4 h-4" /> Preferences
+      </button>
+    </div>
+    <div className="mx-6">
+      <ResultsTabs
+        results={results}
+        includeFailedInExcel={includeFailedInExcel}
+        returnType={lastReturnType === 'GSTR-2B' ? 'GSTR-3B' : lastReturnType}
+        selectedCategories={selectedTables[lastReturnType === 'GSTR-2B' ? 'GSTR-3B' : lastReturnType] ?? []}
+        loading={loading}
+        refreshNonce={refreshNonce}
+        prefOpen={prefOpen}
+      />
+    </div>
+  </>
+)}
+
+        {activeView === 'reconciliation' && <ReconciliationPage />}
+{/* RECONCILIATION VIEW */}
+
           {/* Preferences Floating Modal */}
           {prefOpen && (
             <div className="fixed inset-0 z-50">
-              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }} />
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => { cancelPreferences(); setPrefOpen(false) }} />
               <div
                 ref={prefModalRef}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="preferences-title"
                 tabIndex={-1}
-                className="relative mt-10 mx-auto w-[calc(100%-2rem)] sm:w-auto max-w-4xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-2xl shadow-xl flex flex-col max-h-[85vh] overflow-hidden"
+                className="relative mt-10 mx-auto w-[calc(100%-2rem)] sm:w-auto max-w-4xl bg-surf border border-border rounded-2xl shadow-xl flex flex-col max-h-[85vh] overflow-hidden"
               >
-                <div className="px-8 py-6 border-b border-neutral-200 dark:border-neutral-700">
+                <div className="px-8 py-6 border-b border-border">
                   <div className="flex items-center justify-between">
                     <h2 id="preferences-title" className="text-2xl font-semibold">Preferences</h2>
-                    <div className="flex gap-2 items-center">
-                      <div className="hidden"></div>
-                      <div className="hidden"></div>
-                      <div className="relative group">
-                        <button aria-label="Close preferences" className="inline-flex items-center justify-center p-2 rounded-lg bg-transparent text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-white transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }}>
-                          <X className="w-5 h-5" strokeWidth={2.5} />
-                        </button>
-                        <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-40">
-                          Close
-                        </div>
+                    <div className="relative group">
+                      <button
+                        aria-label="Close preferences"
+                        className="inline-flex items-center justify-center p-2 rounded-lg bg-transparent text-tx2 hover:text-tx transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
+                        onClick={() => { cancelPreferences(); setPrefOpen(false) }}
+                      >
+                        <X className="w-5 h-5" strokeWidth={2.5} />
+                      </button>
+                      <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-40">
+                        Close
                       </div>
                     </div>
                   </div>
-                  <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">Choose the tables to be extracted from the given list. Your preferences will be saved.</div>
+                  <div className="mt-1 text-xs text-tx3">Choose the tables to be extracted from the given list. Your preferences will be saved.</div>
                   <div className="mt-3 flex items-center">
                     <div className="flex-1"></div>
                     <div className="flex-1 flex justify-center">
-                      <div className="relative inline-flex items-center w-64 h-10 rounded-3xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/70 shadow-sm overflow-hidden">
-                        <span className={`absolute top-0 left-0 h-full w-1/2 rounded-3xl transition-transform duration-300`} style={{ background: 'linear-gradient(to right, rgba(91,53,252,0.15), rgba(140,82,255,0.15))', transform: activeSettingsTab==='GSTR-3B' ? 'translateX(100%)' : 'translateX(0%)' }} />
-                        <button onClick={()=>setActiveSettingsTab('GSTR-1')} className={`relative z-10 flex-1 h-full text-sm font-medium ${activeSettingsTab==='GSTR-1' ? 'text-[#5b35fc]' : 'text-neutral-700 dark:text-neutral-200'} cursor-pointer`}>GSTR-1</button>
-                        <button onClick={()=>setActiveSettingsTab('GSTR-3B')} className={`relative z-10 flex-1 h-full text-sm font-medium ${activeSettingsTab==='GSTR-3B' ? 'text-[#5b35fc]' : 'text-neutral-700 dark:text-neutral-200'} cursor-pointer`}>GSTR-3B</button>
+                      <div className="relative inline-flex items-center w-64 h-10 rounded-3xl border border-border bg-surf/70 shadow-sm overflow-hidden">
+                        <span
+                          className="absolute top-0 left-0 h-full w-1/2 rounded-3xl transition-transform duration-300"
+                          style={{ background: 'linear-gradient(to right, rgba(154,51,36,0.12), rgba(229,115,115,0.15))', transform: activeSettingsTab === 'GSTR-3B' ? 'translateX(100%)' : 'translateX(0%)' }}
+                        />
+                        <button onClick={() => setActiveSettingsTab('GSTR-1')} className={`relative z-10 flex-1 h-full text-sm font-medium ${activeSettingsTab === 'GSTR-1' ? 'text-acc' : 'text-tx2'} cursor-pointer`}>GSTR-1</button>
+                        <button onClick={() => setActiveSettingsTab('GSTR-3B')} className={`relative z-10 flex-1 h-full text-sm font-medium ${activeSettingsTab === 'GSTR-3B' ? 'text-acc' : 'text-tx2'} cursor-pointer`}>GSTR-3B</button>
                       </div>
                     </div>
                     <div className="flex-1 flex justify-end items-center gap-2">
@@ -1439,46 +1296,37 @@ function App() {
                         const allSelected = allCats.length > 0 && (draftSelectedTables[activeSettingsTab] || []).length === allCats.length
                         const noneSelected = (draftSelectedTables[activeSettingsTab] || []).length === 0
                         return (
-                          <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                          <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-border overflow-hidden">
                             <button
-                              onClick={()=>setDraftSelectedTables(prev => ({ ...prev, [activeSettingsTab]: allCats }))}
-                              className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
-                            >
-                              All
-                            </button>
+                              onClick={() => setDraftSelectedTables(prev => ({ ...prev, [activeSettingsTab]: allCats }))}
+                              className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
+                            >All</button>
                             <button
-                              onClick={()=>setDraftSelectedTables(prev => ({ ...prev, [activeSettingsTab]: [] }))}
-                              className={`text-xs font-semibold px-2 py-0.5 border-l border-neutral-200 dark:border-neutral-700 cursor-pointer ${noneSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
-                            >
-                              None
-                            </button>
+                              onClick={() => setDraftSelectedTables(prev => ({ ...prev, [activeSettingsTab]: [] }))}
+                              className={`text-xs font-semibold px-2 py-0.5 border-l border-border cursor-pointer ${noneSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
+                            >None</button>
                           </div>
                         )
                       })()}
                       <div className="relative group">
                         <button
-                          onClick={()=>toggleAllExpanded(activeSettingsTab)}
+                          onClick={() => toggleAllExpanded(activeSettingsTab)}
                           aria-label={(() => {
-                            const sections = schemaStructure[activeSettingsTab] || []
-                            const headings = sections.map(s => s.heading || 'Section')
-                            const allOpen = headings.length > 0 && headings.every(h => !!expandedSections[activeSettingsTab]?.[h])
-                            return allOpen ? 'Collapse All' : 'Expand All'
+                            const headings = (schemaStructure[activeSettingsTab] || []).map(s => s.heading || 'Section')
+                            return headings.length > 0 && headings.every(h => !!expandedSections[activeSettingsTab]?.[h]) ? 'Collapse All' : 'Expand All'
                           })()}
-                          className="inline-flex items-center justify-center p-2 rounded-lg text-[#5b35fc] hover:text-[#8c52ff] transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5b35fc] cursor-pointer"
+                          className="inline-flex items-center justify-center p-2 rounded-lg text-acc hover:opacity-70 transition transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
                         >
                           {(() => {
-                            const sections = schemaStructure[activeSettingsTab] || []
-                            const headings = sections.map(s => s.heading || 'Section')
+                            const headings = (schemaStructure[activeSettingsTab] || []).map(s => s.heading || 'Section')
                             const allOpen = headings.length > 0 && headings.every(h => !!expandedSections[activeSettingsTab]?.[h])
                             return allOpen ? <ChevronsUp className="w-5 h-5" strokeWidth={2.5} /> : <ChevronsDown className="w-5 h-5" strokeWidth={2.5} />
                           })()}
                         </button>
                         <div className="absolute right-0 top-full mt-1 px-2 py-1 rounded-md text-xs bg-neutral-900 text-white opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-40">
                           {(() => {
-                            const sections = schemaStructure[activeSettingsTab] || []
-                            const headings = sections.map(s => s.heading || 'Section')
-                            const allOpen = headings.length > 0 && headings.every(h => !!expandedSections[activeSettingsTab]?.[h])
-                            return allOpen ? 'Collapse all sections' : 'Expand all sections'
+                            const headings = (schemaStructure[activeSettingsTab] || []).map(s => s.heading || 'Section')
+                            return headings.length > 0 && headings.every(h => !!expandedSections[activeSettingsTab]?.[h]) ? 'Collapse all sections' : 'Expand all sections'
                           })()}
                         </div>
                       </div>
@@ -1490,18 +1338,18 @@ function App() {
                     const heading = section.heading || 'Section'
                     const isOpen = expandedSections[activeSettingsTab][heading]
                     return (
-                      <div key={si} className="rounded-xl border border-neutral-100 dark:border-neutral-700/50 shadow">
+                      <div key={si} className="rounded-xl border border-border shadow">
                         <div
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-neutral-50 dark:hover:bg-neutral-700 cursor-pointer"
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-sub cursor-pointer"
                           role="button"
                           aria-expanded={isOpen}
                           tabIndex={0}
-                          onClick={()=>toggleExpand(activeSettingsTab, heading)}
-                          onKeyDown={(e)=>{ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleExpand(activeSettingsTab, heading) } }}
+                          onClick={() => toggleExpand(activeSettingsTab, heading)}
+                          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleExpand(activeSettingsTab, heading) } }}
                         >
                           <div className="inline-flex items-center gap-2">
-                            <span className="text-sm font-medium text-neutral-800 dark:text-neutral-200">{heading}</span>
-                            <ChevronDown className={`w-5 h-5 text-neutral-600 dark:text-neutral-300 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`} strokeWidth={2.5} />
+                            <span className="text-sm font-medium text-tx">{heading}</span>
+                            <ChevronDown className={`w-5 h-5 text-tx3 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`} strokeWidth={2.5} />
                           </div>
                           {(() => {
                             const catsInSection = (section.categories || []).map(c => c.name)
@@ -1509,24 +1357,15 @@ function App() {
                             const allSelected = catsInSection.length > 0 && selectedCount === catsInSection.length
                             const noneSelected = selectedCount === 0
                             return (
-                              <div
-                                role="group"
-                                aria-label="Select range"
-                                className="inline-flex rounded-2xl border border-neutral-200 dark:border-neutral-700 overflow-hidden"
-                                onClick={(e)=>e.stopPropagation()}
-                              >
+                              <div role="group" aria-label="Select range" className="inline-flex rounded-2xl border border-border overflow-hidden" onClick={(e) => e.stopPropagation()}>
                                 <button
-                                  onClick={()=>setSectionSelection(activeSettingsTab, heading, true)}
-                                  className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
-                                >
-                                  All
-                                </button>
+                                  onClick={() => setSectionSelection(activeSettingsTab, heading, true)}
+                                  className={`text-xs font-semibold px-2 py-0.5 cursor-pointer ${allSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
+                                >All</button>
                                 <button
-                                  onClick={()=>setSectionSelection(activeSettingsTab, heading, false)}
-                                  className={`text-xs font-semibold px-2 py-0.5 border-l border-neutral-200 dark:border-neutral-700 cursor-pointer ${noneSelected ? 'bg-[#14cba1] text-white' : 'bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700'}`}
-                                >
-                                  None
-                                </button>
+                                  onClick={() => setSectionSelection(activeSettingsTab, heading, false)}
+                                  className={`text-xs font-semibold px-2 py-0.5 border-l border-border cursor-pointer ${noneSelected ? 'bg-[#0ea5a3] text-white' : 'bg-transparent text-tx hover:bg-sub'}`}
+                                >None</button>
                               </div>
                             )
                           })()}
@@ -1535,10 +1374,10 @@ function App() {
                           <div className="px-4 pb-3">
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                               {section.categories.map((cat, ci) => (
-                                <label key={ci} className="flex items-center gap-2 rounded-lg border border-neutral-100 dark:border-neutral-700/50 bg-white dark:bg-neutral-800 p-2 hover:shadow hover:border-neutral-200 transition-all cursor-pointer">
-                                  <input type="checkbox" className="sr-only" checked={draftSelectedTables[activeSettingsTab].includes(cat.name)} onChange={()=>toggleCategoryDraft(activeSettingsTab, cat.name)} />
-                                  <Check className={`w-4 h-4 shrink-0 ${draftSelectedTables[activeSettingsTab].includes(cat.name) ? 'text-[#14cba1]' : 'opacity-0'}`} aria-hidden="true" />
-                                  <span className="font-medium text-xs text-neutral-800 dark:text-neutral-200">{cat.name}</span>
+                                <label key={ci} className="flex items-center gap-2 rounded-lg border border-border bg-surf p-2 hover:shadow hover:border-border2 transition-all cursor-pointer">
+                                  <input type="checkbox" className="sr-only" checked={draftSelectedTables[activeSettingsTab].includes(cat.name)} onChange={() => toggleCategoryDraft(activeSettingsTab, cat.name)} />
+                                  <Check className={`w-4 h-4 shrink-0 ${draftSelectedTables[activeSettingsTab].includes(cat.name) ? 'text-[#0ea5a3]' : 'opacity-0'}`} aria-hidden="true" />
+                                  <span className="font-medium text-xs text-tx">{cat.name}</span>
                                 </label>
                               ))}
                             </div>
@@ -1547,27 +1386,28 @@ function App() {
                       </div>
                     )
                   })}
-                  <p className="text-xs text-neutral-600 dark:text-neutral-300">Selections follow the original schema order and are saved per return type.</p>
+                  <p className="text-xs text-tx3">Selections follow the original schema order and are saved per return type.</p>
                 </div>
-                <div className="px-8 py-6 border-t border-neutral-200 dark:border-neutral-700 bg-white/60 dark:bg-neutral-800/60 flex items-center justify-end gap-2">
-                  <button className="inline-flex items-center justify-center gap-2 px-4 h-11 text-sm rounded-xl border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-50 shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700 cursor-pointer" onClick={()=>{ cancelPreferences(); setPrefOpen(false) }}>Cancel</button>
-                  <button className="inline-flex items-center justify-center gap-2 px-4 h-11 text-sm rounded-xl text-white hover:opacity-90 shadow-lg shadow-indigo-500/15 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer hover:shadow-xl" style={{ background: 'linear-gradient(to right,#5b35fc 0%, #8c52ff 100%)' }} onClick={()=>{ savePreferences(); setPrefOpen(false) }}>Save Preferences</button>
+                <div className="px-8 py-6 border-t border-border bg-surf/60 flex items-center justify-end gap-2">
+                  <button
+                    className="inline-flex items-center justify-center gap-2 px-4 h-11 text-sm rounded-xl border border-border bg-surf text-tx hover:bg-sub shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer"
+                    onClick={() => { cancelPreferences(); setPrefOpen(false) }}
+                  >Cancel</button>
+                  <button
+                    className="inline-flex items-center justify-center gap-2 px-4 h-11 text-sm rounded-xl text-white hover:opacity-90 shadow-lg shadow-acc/15 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acc cursor-pointer hover:shadow-xl"
+                    style={{ background: 'linear-gradient(to right, var(--color-acc) 0%, #e57373 100%)' }}
+                    onClick={() => { savePreferences(); setPrefOpen(false) }}
+                  >Save Preferences</button>
                 </div>
               </div>
             </div>
           )}
-          {activeView === 'help' && (
-            <HelpContent />
-          )}
-          {activeView === 'disclaimer' && (
-            <DisclaimerContent />
-          )}
         </div>
+        <Footer />
       </div>
-      <Footer />
       {showToast && (
         <div className="fixed bottom-5 right-5 z-[60]">
-          <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-[#1ce9b5] text-white shadow-lg shadow-[#1ce9b5]/20 border border-[#1ce9b5]">
+          <div className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-[#14b8a6] text-white shadow-lg shadow-[#14b8a6]/20 border border-[#14b8a6]">
             <CheckCircle className="w-4 h-4" />
             <span className="text-sm font-medium">{toastText}</span>
           </div>
