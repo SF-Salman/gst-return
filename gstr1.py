@@ -13,15 +13,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 def clean_text(text):
-    """Remove watermark letter artifacts embedded in GSTR-1 PDFs.
-    The FINAL watermark letters (L, A, N, I, F) appear as standalone
-    characters on their own lines OR embedded before digits e.g. 'I0', 'F2'.
-    Strip both forms before running any regex patterns.
-    """
-    # Remove standalone watermark lines (single uppercase letter alone on a line)
     text = re.sub(r'(?m)^[LANIF]\s*$', '', text)
-    # Remove watermark letters embedded before digits e.g. 'I0' -> '0', 'F2' -> '2'
     text = re.sub(r'\b[LANIF](\d)', r'\1', text)
+    # Remove watermark letter attached to end of words (e.g. "tableN" → "table")
+    text = re.sub(r'([a-z])[LANIF]\b', r'\1', text)
     return text
 
 def safe_float(value):
@@ -984,33 +979,103 @@ def extract_table_10_values(text):
 def extract_table_11_values(text):
     """Extract Table 11A and 11B - Advances and Adjustments."""
     data = {}
-    
-    # 11A
-    match_11a = re.search(r'11A\(1\), 11A\(2\).*\nTotal\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
+
+    # ── 11A(1), 11A(2) — Advances received ──────────────────────────────
+    # Pattern: header line immediately followed by Total line
+    # Fix: use line-by-line matching instead of DOTALL to avoid greedy overshoot
+    match_11a = re.search(
+        r'11A\(1\),\s*11A\(2\)\s*-\s*Advances received[^\n]*\n'
+        r'Total\s+(\d+)\s+Net Value\s+'
+        r'(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        text, re.IGNORECASE
+    )
     if match_11a:
-        data['11A_Value'] = match_11a.group(1).strip()
-        data['11A_CGST'] = match_11a.group(2).strip()
-        data['11A_SGST'] = match_11a.group(3).strip()
-        data['11A_Cess'] = match_11a.group(4).strip()
+        data['11A_Records'] = match_11a.group(1).strip()
+        data['11A_Value']   = match_11a.group(2).strip()
+        data['11A_IGST']    = match_11a.group(3).strip()
+        data['11A_CGST']    = match_11a.group(4).strip()
+        data['11A_SGST']    = match_11a.group(5).strip()
+        data['11A_Cess']    = match_11a.group(6).strip()
     else:
-        data['11A_Value'] = ""
-        data['11A_CGST'] = ""
-        data['11A_SGST'] = ""
-        data['11A_Cess'] = ""
-    
-    # 11B
-    match_11b = re.search(r'11B\(1\), 11B\(2\).*\nTotal\s+\d+\s+Net Value\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)', text, re.DOTALL)
+        data['11A_Records'] = ''
+        data['11A_Value']   = ''
+        data['11A_IGST']    = ''
+        data['11A_CGST']    = ''
+        data['11A_SGST']    = ''
+        data['11A_Cess']    = ''
+
+    # ── 11B(1), 11B(2) — Advances adjusted ──────────────────────────────
+    match_11b = re.search(
+        r'11B\(1\),\s*11B\(2\)\s*-\s*Advance amount[^\n]*\n'
+        r'Total\s+(\d+)\s+Net Value\s+'
+        r'(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        text, re.IGNORECASE
+    )
     if match_11b:
-        data['11B_Value'] = match_11b.group(1).strip()
-        data['11B_CGST'] = match_11b.group(2).strip()
-        data['11B_SGST'] = match_11b.group(3).strip()
-        data['11B_Cess'] = match_11b.group(4).strip()
+        data['11B_Records'] = match_11b.group(1).strip()
+        data['11B_Value']   = match_11b.group(2).strip()
+        data['11B_IGST']    = match_11b.group(3).strip()
+        data['11B_CGST']    = match_11b.group(4).strip()
+        data['11B_SGST']    = match_11b.group(5).strip()
+        data['11B_Cess']    = match_11b.group(6).strip()
     else:
-        data['11B_Value'] = ""
-        data['11B_CGST'] = ""
-        data['11B_SGST'] = ""
-        data['11B_Cess'] = ""
-    
+        data['11B_Records'] = ''
+        data['11B_Value']   = ''
+        data['11B_IGST']    = ''
+        data['11B_CGST']    = ''
+        data['11B_SGST']    = ''
+        data['11B_Cess']    = ''
+
+    # ── 11A Amendment — Amendment to advances received ───────────────────
+    # Fix: header may contain stray characters (e.g. "tableN 11A") — use [^\n]* to absorb
+    # Fix: Total line has NO record count — format is "Total 0.00 0.00 ..."
+    match_11a_amend = re.search(
+        r'11A\s*-\s*Amendment to advances received[^\n]*\n'
+        r'Amended amount\s*-\s*Total\s+\d+\s+Net Value\s+'
+        r'(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\n'
+        r'Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        text, re.IGNORECASE
+    )
+    if match_11a_amend:
+        data['11A_Amend_Value']      = match_11a_amend.group(1).strip()
+        data['11A_Amend_IGST']       = match_11a_amend.group(2).strip()
+        data['11A_Amend_CGST']       = match_11a_amend.group(3).strip()
+        data['11A_Amend_SGST']       = match_11a_amend.group(4).strip()
+        data['11A_Amend_Cess']       = match_11a_amend.group(5).strip()
+        data['11A_Amend_Net_Value']  = match_11a_amend.group(6).strip()
+        data['11A_Amend_Net_IGST']   = match_11a_amend.group(7).strip()
+        data['11A_Amend_Net_CGST']   = match_11a_amend.group(8).strip()
+        data['11A_Amend_Net_SGST']   = match_11a_amend.group(9).strip()
+        data['11A_Amend_Net_Cess']   = match_11a_amend.group(10).strip()
+    else:
+        for key in ['11A_Amend_Value','11A_Amend_IGST','11A_Amend_CGST','11A_Amend_SGST','11A_Amend_Cess',
+                    '11A_Amend_Net_Value','11A_Amend_Net_IGST','11A_Amend_Net_CGST','11A_Amend_Net_SGST','11A_Amend_Net_Cess']:
+            data[key] = ''
+
+    # ── 11B Amendment — Amendment to advances adjusted ───────────────────
+    match_11b_amend = re.search(
+        r'11B\s*-\s*Amendment to advances adjusted[^\n]*\n'
+        r'Amended amount\s*-\s*Total\s+\d+\s+Net Value\s+'
+        r'(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\n'
+        r'Total\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)\s+(-?[\d,.]+)',
+        text, re.IGNORECASE
+    )
+    if match_11b_amend:
+        data['11B_Amend_Value']      = match_11b_amend.group(1).strip()
+        data['11B_Amend_IGST']       = match_11b_amend.group(2).strip()
+        data['11B_Amend_CGST']       = match_11b_amend.group(3).strip()
+        data['11B_Amend_SGST']       = match_11b_amend.group(4).strip()
+        data['11B_Amend_Cess']       = match_11b_amend.group(5).strip()
+        data['11B_Amend_Net_Value']  = match_11b_amend.group(6).strip()
+        data['11B_Amend_Net_IGST']   = match_11b_amend.group(7).strip()
+        data['11B_Amend_Net_CGST']   = match_11b_amend.group(8).strip()
+        data['11B_Amend_Net_SGST']   = match_11b_amend.group(9).strip()
+        data['11B_Amend_Net_Cess']   = match_11b_amend.group(10).strip()
+    else:
+        for key in ['11B_Amend_Value','11B_Amend_IGST','11B_Amend_CGST','11B_Amend_SGST','11B_Amend_Cess',
+                    '11B_Amend_Net_Value','11B_Amend_Net_IGST','11B_Amend_Net_CGST','11B_Amend_Net_SGST','11B_Amend_Net_Cess']:
+            data[key] = ''
+
     return data
 
 def extract_table_12_values(text):

@@ -48,8 +48,8 @@ INFO_ONLY_KEYS = {
     "cdnr_value", "cdnr_igst",
     "reverse_charge_value", "reverse_charge_igst",
     "reverse_charge_cgst",  "reverse_charge_sgst",
+    "b2cs_value", "b2cs_igst",
 }
-
 # Human-readable description list (used for column headers in annual sheet)
 ROW_DESCRIPTIONS = [desc for _, _, desc in RECON_ROWS]
 
@@ -80,25 +80,52 @@ def calculate_gstr1_liability(gstr1_data: dict) -> dict:
     # NOTE: 6B (SEZ) is a zero-rated supply under GST and flows into GSTR-3B
     # 3.1(b), NOT 3.1(a). It is already included in export_value below;
     # including it here as well double-counts it in 3.1(a).
+    # Table 11A = advances received (tax not yet invoiced this period)
+    # Table 11B = advances received earlier, now adjusted against an invoice
+    # GSTR-3B's 3.1(a) always includes tax on advances the period they're received,
+    # and nets it out the period they're adjusted — without this, every period with
+    # an advance receipt/adjustment shows a mismatch equal to the 11A/11B amount.
+    advance_received_value = sf(gstr1_data.get("11A_Value", 0))
+    advance_received_igst  = sf(gstr1_data.get("11A_IGST",  0))
+    advance_received_cgst  = sf(gstr1_data.get("11A_CGST",  0))
+    advance_received_sgst  = sf(gstr1_data.get("11A_SGST",  0))
+    advance_received_cess  = sf(gstr1_data.get("11A_Cess",  0))
+
+    advance_adjusted_value = sf(gstr1_data.get("11B_Value", 0))
+    advance_adjusted_igst  = sf(gstr1_data.get("11B_IGST",  0))
+    advance_adjusted_cgst  = sf(gstr1_data.get("11B_CGST",  0))
+    advance_adjusted_sgst  = sf(gstr1_data.get("11B_SGST",  0))
+    advance_adjusted_cess  = sf(gstr1_data.get("11B_Cess",  0))
+
     reg_base_value = (
         sf(gstr1_data.get("4A_Value", 0)) +
-        sf(gstr1_data.get("6C_Value", 0))
+        sf(gstr1_data.get("6C_Value", 0)) +
+        advance_received_value -
+        advance_adjusted_value
     )
     reg_base_igst = (
         sf(gstr1_data.get("4A_IGST", 0)) +
-        sf(gstr1_data.get("6C_IGST", 0))
+        sf(gstr1_data.get("6C_IGST", 0)) +
+        advance_received_igst -
+        advance_adjusted_igst
     )
     reg_base_cgst = (
         sf(gstr1_data.get("4A_CGST", 0)) +
-        sf(gstr1_data.get("6C_CGST", 0))
+        sf(gstr1_data.get("6C_CGST", 0)) +
+        advance_received_cgst -
+        advance_adjusted_cgst
     )
     reg_base_sgst = (
         sf(gstr1_data.get("4A_SGST", 0)) +
-        sf(gstr1_data.get("6C_SGST", 0))
+        sf(gstr1_data.get("6C_SGST", 0)) +
+        advance_received_sgst -
+        advance_adjusted_sgst
     )
     reg_base_cess = (
         sf(gstr1_data.get("4A_Cess", 0)) +
-        sf(gstr1_data.get("6C_Cess", 0))
+        sf(gstr1_data.get("6C_Cess", 0)) +
+        advance_received_cess -
+        advance_adjusted_cess
     )
     # Registered amendments (9A — net diff only, never amended totals)
     reg_amend_value = (
@@ -195,11 +222,9 @@ def calculate_gstr1_liability(gstr1_data: dict) -> dict:
 
     # ── 3.1(b): Exports / Zero Rated ─────────────────────────────────────────
     export_value = (sf(gstr1_data.get("6A_Value", 0))
-                  + sf(gstr1_data.get("6B_Value", 0))
-                  + sf(gstr1_data.get("6C_Value", 0)))
+                  + sf(gstr1_data.get("6B_Value", 0)))
     export_igst  = (sf(gstr1_data.get("6A_IGST",  0))
-                  + sf(gstr1_data.get("6B_IGST",  0))
-                  + sf(gstr1_data.get("6C_IGST",  0)))
+                  + sf(gstr1_data.get("6B_IGST",  0)))
 
     export_amend_value = (
         sf(gstr1_data.get("9A_EXPWP_NetDiff_Value",0))
@@ -260,14 +285,17 @@ def calculate_gstr1_liability(gstr1_data: dict) -> dict:
 
     # ── Breakdown dict (consumed by Excel Calculation Summary sheet + UI) ─────
     breakdown = {
+        
         "3.1(a) Registered": {
-            "formula": "4A + 6B + 6C + 9A_B2BReg/SEZ/DE(Net Diff) + 9B_CDNR(B2BReg+SEZ+DE net)",
+            "formula": "4A + 6B + 6C + 11A(Advance Received) - 11B(Advance Adjusted) + 9A_B2BReg/SEZ/DE(Net Diff) + 9B_CDNR(B2BReg+SEZ+DE net)",
             "components": [
-                {"table": "4A",              "value": sf(gstr1_data.get("4A_Value", 0))},
-                {"table": "6B",              "value": sf(gstr1_data.get("6B_Value", 0))},
-                {"table": "6C",              "value": sf(gstr1_data.get("6C_Value", 0))},
-                {"table": "9A Reg Net Diff", "value": reg_amend_value},
-                {"table": "9B CDNR Reg",     "value": cdnr_reg_value},
+                {"table": "4A",                    "value": sf(gstr1_data.get("4A_Value", 0))},
+                {"table": "6B",                    "value": sf(gstr1_data.get("6B_Value", 0))},
+                {"table": "6C",                    "value": sf(gstr1_data.get("6C_Value", 0))},
+                {"table": "11A Advance Received",  "value": advance_received_value},
+                {"table": "11B Advance Adjusted",  "value": -advance_adjusted_value},
+                {"table": "9A Reg Net Diff",       "value": reg_amend_value},
+                {"table": "9B CDNR Reg",           "value": cdnr_reg_value},
             ],
             "total": registered_value,
         },

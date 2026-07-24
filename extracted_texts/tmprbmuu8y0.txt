@@ -1,0 +1,19 @@
+FORM GSTR-1
+[See rule 59(1)]
+Details of outward supplies of goods or services
+Financial year 2025-26
+Tax period April
+1 GSTIN 32AAACE8668B1ZV
+2 (a) Legal name of the registered person ELITE NATURAL PRIVATE LIMITED
+(b) Trade name if any ELITE NATURAL PVT. LTD.
+(c) ARN AA320425151114S
+(d) ARN date 10/05/2025
+(e) Nil Filed Yes
+Verification:
+I hereby solemnly affirm and declare that the information given hereNin above is true and correct to the best of my knowledge and belief and nothing has been concealed there from and in case
+of any reduction in output tax liability the benefit thereof has been/ will be passed on to the recipient of supply.
+Date: 10/05/2025
+Signature
+Name of Authorized Signatory
+Nandeesha J
+Designation/Status: Finance Manager

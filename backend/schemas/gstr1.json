@@ -67,404 +67,338 @@
   },
   {
     "Field Name": "4A_Value",
-    
     "Category": " 3. Table 4A - B2B Regular Supplies",
     "Field Description": "Total invoice value"
   },
   {
     "Field Name": "4A_IGST",
-    
     "Category": " 3. Table 4A - B2B Regular Supplies",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "4A_CGST",
-    
     "Category": " 3. Table 4A - B2B Regular Supplies",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "4A_SGST",
-    
     "Category": " 3. Table 4A - B2B Regular Supplies",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "4A_Cess",
-    
     "Category": " 3. Table 4A - B2B Regular Supplies",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "4B_Value",
-    
     "Category": " 4. Table 4B - B2B Reverse Charge Supplies",
     "Field Description": "Total invoice value"
   },
   {
     "Field Name": "4B_IGST",
-    
     "Category": " 4. Table 4B - B2B Reverse Charge Supplies",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "4B_CGST",
-    
     "Category": " 4. Table 4B - B2B Reverse Charge Supplies",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "4B_SGST",
-    
     "Category": " 4. Table 4B - B2B Reverse Charge Supplies",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "4B_Cess",
-    
     "Category": " 4. Table 4B - B2B Reverse Charge Supplies",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "5_Value",
-    
     "Category": " 5. Table 5 - B2CL Inter-State Supplies",
     "Field Description": "Total invoice value"
   },
   {
     "Field Name": "5_IGST",
-    
     "Category": " 5. Table 5 - B2CL Inter-State Supplies",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "5_Cess",
-    
     "Category": " 5. Table 5 - B2CL Inter-State Supplies",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "6A_Value",
-    
     "Category": " 6. Table 6A - Exports",
     "Field Description": "Total export value"
   },
   {
     "Field Name": "6A_IGST",
-    
     "Category": " 6. Table 6A - Exports",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "6A_Cess",
-    
     "Category": " 6. Table 6A - Exports",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "6A_EXPWP_Value",
-    
     "Category": " 6. Table 6A - Exports",
     "Field Description": "Export with payment value"
   },
   {
     "Field Name": "6A_EXPWP_IGST",
-    
     "Category": " 6. Table 6A - Exports",
     "Field Description": "Export with payment IGST"
   },
   {
     "Field Name": "6A_EXPWP_Cess",
-    
     "Category": " 6. Table 6A - Exports",
     "Field Description": "Export with payment CESS"
   },
   {
     "Field Name": "6A_EXPWOP_Value",
-    
     "Category": " 6. Table 6A - Exports",
     "Field Description": "Export without payment value"
   },
   {
     "Field Name": "6B_Value",
-    
     "Category": " 7. Table 6B - SEZ Supplies",
     "Field Description": "Total SEZ supply value"
   },
   {
     "Field Name": "6B_IGST",
-    
     "Category": " 7. Table 6B - SEZ Supplies",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "6B_Cess",
-    
     "Category": " 7. Table 6B - SEZ Supplies",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "6C_Value",
-    
     "Category": " 8. Table 6C - Deemed Exports",
     "Field Description": "Total deemed export value"
   },
   {
     "Field Name": "6C_IGST",
-    
     "Category": " 8. Table 6C - Deemed Exports",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "6C_CGST",
-    
     "Category": " 8. Table 6C - Deemed Exports",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "6C_SGST",
-    
     "Category": " 8. Table 6C - Deemed Exports",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "6C_Cess",
-    
     "Category": " 8. Table 6C - Deemed Exports",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "7_Value",
-    
     "Category": " 9. Table 7 - B2CS (Others)",
     "Field Description": "Total B2CS value"
   },
   {
     "Field Name": "7_IGST",
-    
     "Category": " 9. Table 7 - B2CS (Others)",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "7_CGST",
-    
     "Category": " 9. Table 7 - B2CS (Others)",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "7_SGST",
-    
     "Category": " 9. Table 7 - B2CS (Others)",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "7_Cess",
-    
     "Category": " 9. Table 7 - B2CS (Others)",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "8_Total",
-    
     "Category": " 10. Table 8 - Nil Rated, Exempted and Non-GST",
     "Field Description": "Total value"
   },
   {
     "Field Name": "8_Nil",
-    
     "Category": " 10. Table 8 - Nil Rated, Exempted and Non-GST",
     "Field Description": "Nil rated supplies value"
   },
   {
     "Field Name": "8_Exempted",
-    
     "Category": " 10. Table 8 - Nil Rated, Exempted and Non-GST",
     "Field Description": "Exempted supplies value"
   },
   {
     "Field Name": "8_NonGST",
-    
     "Category": " 10. Table 8 - Nil Rated, Exempted and Non-GST",
     "Field Description": "Non-GST supplies value"
   },
   {
     "Field Name": "9A_B2BRegular_Value",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Regular amendment value"
   },
   {
     "Field Name": "9A_B2BRegular_IGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Regular amendment IGST"
   },
   {
     "Field Name": "9A_B2BRegular_CGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Regular amendment CGST"
   },
   {
     "Field Name": "9A_B2BRegular_SGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Regular amendment SGST"
   },
   {
     "Field Name": "9A_B2BRegular_Cess",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Regular amendment CESS"
   },
   {
     "Field Name": "9A_B2BReverse_Value",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Reverse charge amendment value"
   },
   {
     "Field Name": "9A_B2BReverse_IGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Reverse charge amendment IGST"
   },
   {
     "Field Name": "9A_B2BReverse_CGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Reverse charge amendment CGST"
   },
   {
     "Field Name": "9A_B2BReverse_SGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Reverse charge amendment SGST"
   },
   {
     "Field Name": "9A_B2BReverse_Cess",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2B Reverse charge amendment CESS"
   },
   {
     "Field Name": "9A_B2CL_Value",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2CL amendment value"
   },
   {
     "Field Name": "9A_B2CL_IGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2CL amendment IGST"
   },
   {
     "Field Name": "9A_B2CL_Cess",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "B2CL amendment CESS"
   },
   {
     "Field Name": "9A_EXPWP_Value",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Export with payment amendment value"
   },
   {
     "Field Name": "9A_EXPWP_IGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Export with payment amendment IGST"
   },
   {
     "Field Name": "9A_EXPWP_Cess",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Export with payment amendment CESS"
   },
   {
     "Field Name": "9A_EXPWOP_Value",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Export without payment amendment value"
   },
   {
     "Field Name": "9A_SEZWP_Value",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "SEZ with payment amendment value"
   },
   {
     "Field Name": "9A_SEZWP_IGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "SEZ with payment amendment IGST"
   },
   {
     "Field Name": "9A_SEZWP_Cess",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "SEZ with payment amendment CESS"
   },
   {
     "Field Name": "9A_SEZWOP_Value",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "SEZ without payment amendment value"
   },
   {
     "Field Name": "9A_DE_Value",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Deemed export amendment value"
   },
   {
     "Field Name": "9A_DE_IGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Deemed export amendment IGST"
   },
   {
     "Field Name": "9A_DE_CGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Deemed export amendment CGST"
   },
   {
     "Field Name": "9A_DE_SGST",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Deemed export amendment SGST"
   },
   {
     "Field Name": "9A_DE_Cess",
-    
     "Category": " 11. Table 9A - Amendments to Taxable Supplies",
     "Field Description": "Deemed export amendment CESS"
   },
   {
     "Field Name": "9B_NetDiff_Value",
-    
     "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total net difference value (CDNR + CDNUR combined)"
   },
   {
     "Field Name": "9B_NetDiff_IGST",
-    
     "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "9B_NetDiff_Cess",
-    
     "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total CESS amount"
   },
   {
-  "Field Name": "9B_CDNUR_B2CL_Value",
-  "Category": " 12. Table 9B - Credit/Debit Notes",
-  "Field Description": "CDNUR (Unregistered) — B2CL credit/debit note value"
+    "Field Name": "9B_CDNUR_B2CL_Value",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "CDNUR (Unregistered) — B2CL credit/debit note value"
   },
   {
     "Field Name": "9B_CDNUR_B2CL_IGST",
@@ -497,32 +431,27 @@
     "Field Description": "EXPWOP credit/debit note value"
   },
   {
-  "Field Name": "9B_CDNR_Total_Value",
-  "Headings": "Table-wise Data Extraction",
-  "Category": " 12. Table 9B - Credit/Debit Notes",
-  "Field Description": "CDNR (Registered) — Total credit/debit note value"
+    "Field Name": "9B_CDNR_Total_Value",
+    "Category": " 12. Table 9B - Credit/Debit Notes",
+    "Field Description": "CDNR (Registered) — Total credit/debit note value"
   },
   {
     "Field Name": "9B_CDNR_Total_IGST",
-    "Headings": "Table-wise Data Extraction",
     "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total CDNR IGST"
   },
   {
     "Field Name": "9B_CDNR_Total_CGST",
-    "Headings": "Table-wise Data Extraction",
     "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total CDNR CGST"
   },
   {
     "Field Name": "9B_CDNR_Total_SGST",
-    "Headings": "Table-wise Data Extraction",
     "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total CDNR SGST"
   },
   {
     "Field Name": "9B_CDNR_Total_Cess",
-    "Headings": "Table-wise Data Extraction",
     "Category": " 12. Table 9B - Credit/Debit Notes",
     "Field Description": "Total CDNR Cess"
   },
@@ -568,757 +497,641 @@
   },
   {
     "Field Name": "9C_Value",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "Total amended credit/debit note value"
   },
   {
     "Field Name": "9C_IGST",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "9C_CGST",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "9C_SGST",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "9C_Cess",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "9C_B2CL_Value",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "B2CL amended credit/debit note value"
   },
   {
     "Field Name": "9C_B2CL_IGST",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "B2CL amended credit/debit note IGST"
   },
   {
     "Field Name": "9C_B2CL_Cess",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "B2CL amended credit/debit note CESS"
   },
   {
     "Field Name": "9C_EXPWP_Value",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "EXPWP amended credit/debit note value"
   },
   {
     "Field Name": "9C_EXPWP_IGST",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "EXPWP amended credit/debit note IGST"
   },
   {
     "Field Name": "9C_EXPWP_Cess",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "EXPWP amended credit/debit note CESS"
   },
   {
     "Field Name": "9C_EXPWOP_Value",
-    
     "Category": " 13. Table 9C - Amended Credit/Debit Notes",
     "Field Description": "EXPWOP amended credit/debit note value"
   },
   {
     "Field Name": "10_Value",
-    
     "Category": " 14. Table 10 - Amendment to B2C Supplies",
     "Field Description": "Total amendment value"
   },
   {
     "Field Name": "10_CGST",
-    
     "Category": " 14. Table 10 - Amendment to B2C Supplies",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "10_SGST",
-    
     "Category": " 14. Table 10 - Amendment to B2C Supplies",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "10_Cess",
-    
     "Category": " 14. Table 10 - Amendment to B2C Supplies",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "11A_Value",
-    
     "Category": " 15. Table 11A and 11B - Advances and Adjustments",
     "Field Description": "Total advance value"
   },
   {
+    "Field Name": "11A_IGST",
+    "Category": " 15. Table 11A and 11B - Advances and Adjustments",
+    "Field Description": "Total IGST amount"
+  },
+  {
     "Field Name": "11A_CGST",
-    
     "Category": " 15. Table 11A and 11B - Advances and Adjustments",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "11A_SGST",
-    
     "Category": " 15. Table 11A and 11B - Advances and Adjustments",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "11A_Cess",
-    
     "Category": " 15. Table 11A and 11B - Advances and Adjustments",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "11B_Value",
-    
     "Category": " 15. Table 11A and 11B - Advances and Adjustments",
     "Field Description": "Total adjustment value"
   },
   {
+    "Field Name": "11B_IGST",
+    "Category": " 15. Table 11A and 11B - Advances and Adjustments",
+    "Field Description": "Total IGST amount"
+  },
+  {
     "Field Name": "11B_CGST",
-    
     "Category": " 15. Table 11A and 11B - Advances and Adjustments",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "11B_SGST",
-    
     "Category": " 15. Table 11A and 11B - Advances and Adjustments",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "11B_Cess",
-    
     "Category": " 15. Table 11A and 11B - Advances and Adjustments",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "12_Value",
-    
     "Category": " 16. Table 12 - HSN-wise Summary",
     "Field Description": "Total HSN summary value"
   },
   {
     "Field Name": "12_IGST",
-    
     "Category": " 16. Table 12 - HSN-wise Summary",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "12_CGST",
-    
     "Category": " 16. Table 12 - HSN-wise Summary",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "12_SGST",
-    
     "Category": " 16. Table 12 - HSN-wise Summary",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "12_Cess",
-    
     "Category": " 16. Table 12 - HSN-wise Summary",
     "Field Description": "Total CESS amount"
   },
   {
-  "Field Name": "13_DocumentsIssued",
-  
-  "Category": " 17. Table 13 - Documents Issued",
-  "Field Description": "Net number of documents issued during the tax period"
+    "Field Name": "13_DocumentsIssued",
+    "Category": " 17. Table 13 - Documents Issued",
+    "Field Description": "Net number of documents issued during the tax period"
   },
   {
     "Field Name": "14_Value",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "Total e-commerce value"
   },
   {
-  "Field Name": "14_IGST",
-  
-  "Category": " 18. Table 14 - E-Commerce Supplies",
-  "Field Description": "Total IGST amount"
+    "Field Name": "14_IGST",
+    "Category": " 18. Table 14 - E-Commerce Supplies",
+    "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "14_CGST",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "14_SGST",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "14_Cess",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "14_U52_Value",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "U52 (Regular) value"
   },
   {
     "Field Name": "14_U52_CGST",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "U52 CGST amount"
   },
   {
     "Field Name": "14_U52_SGST",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "U52 SGST amount"
   },
   {
     "Field Name": "14_U95_Value",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "U95 (Reverse charge) value"
   },
   {
     "Field Name": "14_U95_CGST",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "U95 CGST amount"
   },
   {
     "Field Name": "14_U95_SGST",
-    
     "Category": " 18. Table 14 - E-Commerce Supplies",
     "Field Description": "U95 SGST amount"
   },
   {
     "Field Name": "14A_Value",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "Total amended e-commerce value"
   },
   {
     "Field Name": "14A_CGST",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "14A_SGST",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "14A_Cess",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "14A_U52_Value",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "U52 amended value"
   },
   {
     "Field Name": "14A_U52_CGST",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "U52 amended CGST"
   },
   {
     "Field Name": "14A_U52_SGST",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "U52 amended SGST"
   },
   {
     "Field Name": "14A_U52_Cess",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "U52 amended CESS"
   },
   {
     "Field Name": "14A_U95_Value",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "U95 amended value"
   },
   {
     "Field Name": "14A_U95_CGST",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "U95 amended CGST"
   },
   {
     "Field Name": "14A_U95_SGST",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "U95 amended SGST"
   },
   {
     "Field Name": "14A_U95_Cess",
-    
     "Category": " 19. Table 14A - Amended E-Commerce Supplies",
     "Field Description": "U95 amended CESS"
   },
   {
     "Field Name": "15_Value",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Total supplies value"
   },
   {
     "Field Name": "15_IGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Total IGST amount"
   },
   {
     "Field Name": "15_CGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Total CGST amount"
   },
   {
     "Field Name": "15_SGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Total SGST amount"
   },
   {
     "Field Name": "15_Cess",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Total CESS amount"
   },
   {
     "Field Name": "15_Regular_Value",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Regular supplies value"
   },
   {
     "Field Name": "15_Regular_IGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Regular supplies IGST"
   },
   {
     "Field Name": "15_Regular_CGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Regular supplies CGST"
   },
   {
     "Field Name": "15_Regular_SGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Regular supplies SGST"
   },
   {
     "Field Name": "15_Regular_Cess",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Regular supplies CESS"
   },
   {
     "Field Name": "15_DE_Value",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Deemed export supplies value"
   },
   {
     "Field Name": "15_DE_IGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Deemed export supplies IGST"
   },
   {
     "Field Name": "15_DE_CGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Deemed export supplies CGST"
   },
   {
     "Field Name": "15_DE_SGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Deemed export supplies SGST"
   },
   {
     "Field Name": "15_DE_Cess",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Deemed export supplies CESS"
   },
   {
     "Field Name": "15_SEZWP_Value",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "SEZ with payment value"
   },
   {
     "Field Name": "15_SEZWP_IGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "SEZ with payment IGST"
   },
   {
     "Field Name": "15_SEZWP_Cess",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "SEZ with payment CESS"
   },
   {
     "Field Name": "15_SEZWOP_Value",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "SEZ without payment value"
   },
   {
     "Field Name": "15_Unreg_Value",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient value"
   },
   {
     "Field Name": "15_Unreg_IGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient IGST"
   },
   {
     "Field Name": "15_Unreg_CGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient CGST"
   },
   {
     "Field Name": "15_Unreg_SGST",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient SGST"
   },
   {
     "Field Name": "15_Unreg_Cess",
-    
     "Category": " 20. Table 15 - Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient CESS"
   },
   {
     "Field Name": "15A_Reg_Value",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Registered recipient amended value"
   },
   {
     "Field Name": "15A_Reg_IGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Registered recipient amended IGST"
   },
   {
     "Field Name": "15A_Reg_CGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Registered recipient amended CGST"
   },
   {
     "Field Name": "15A_Reg_SGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Registered recipient amended SGST"
   },
   {
     "Field Name": "15A_Reg_Cess",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Registered recipient amended CESS"
   },
   {
     "Field Name": "15A_Regular_Value",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Regular amended value"
   },
   {
     "Field Name": "15A_Regular_IGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Regular amended IGST"
   },
   {
     "Field Name": "15A_Regular_CGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Regular amended CGST"
   },
   {
     "Field Name": "15A_Regular_SGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Regular amended SGST"
   },
   {
     "Field Name": "15A_Regular_Cess",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Regular amended CESS"
   },
   {
     "Field Name": "15A_DE_Value",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Deemed export amended value"
   },
   {
     "Field Name": "15A_DE_IGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Deemed export amended IGST"
   },
   {
     "Field Name": "15A_DE_CGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Deemed export amended CGST"
   },
   {
     "Field Name": "15A_DE_SGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Deemed export amended SGST"
   },
   {
     "Field Name": "15A_DE_Cess",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Deemed export amended CESS"
   },
   {
     "Field Name": "15A_SEZWP_Value",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "SEZ with payment amended value"
   },
   {
     "Field Name": "15A_SEZWP_IGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "SEZ with payment amended IGST"
   },
   {
     "Field Name": "15A_SEZWP_Cess",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "SEZ with payment amended CESS"
   },
   {
     "Field Name": "15A_SEZWOP_Value",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "SEZ without payment amended value"
   },
   {
     "Field Name": "15A_Unreg_Value",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient amended value"
   },
   {
     "Field Name": "15A_Unreg_IGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient amended IGST"
   },
   {
     "Field Name": "15A_Unreg_CGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient amended CGST"
   },
   {
     "Field Name": "15A_Unreg_SGST",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient amended SGST"
   },
   {
     "Field Name": "15A_Unreg_Cess",
-    
     "Category": " 21. Table 15A - Amended Supplies U/s 9(5)",
     "Field Description": "Unregistered recipient amended CESS"
   },
   {
     "Field Name": "HSN16_Value",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 16 summary value"
   },
   {
     "Field Name": "HSN16_IGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 16 IGST amount"
   },
   {
     "Field Name": "HSN16_CGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 16 CGST amount"
   },
   {
     "Field Name": "HSN16_SGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 16 SGST amount"
   },
   {
     "Field Name": "HSN16_Cess",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 16 CESS amount"
   },
   {
     "Field Name": "HSN17_Value",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 17 summary value"
   },
   {
     "Field Name": "HSN17_IGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 17 IGST amount"
   },
   {
     "Field Name": "HSN17_CGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 17 CGST amount"
   },
   {
     "Field Name": "HSN17_SGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 17 SGST amount"
   },
   {
     "Field Name": "HSN17_Cess",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 17 CESS amount"
   },
   {
     "Field Name": "HSN18_Value",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 18 summary value"
   },
   {
     "Field Name": "HSN18_IGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 18 IGST amount"
   },
   {
     "Field Name": "HSN18_CGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 18 CGST amount"
   },
   {
     "Field Name": "HSN18_SGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 18 SGST amount"
   },
   {
     "Field Name": "HSN18_Cess",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 18 CESS amount"
   },
   {
     "Field Name": "HSN19_Value",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 19 summary value"
   },
   {
     "Field Name": "HSN19_IGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 19 IGST amount"
   },
   {
     "Field Name": "HSN19_CGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 19 CGST amount"
   },
   {
     "Field Name": "HSN19_SGST",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 19 SGST amount"
   },
   {
     "Field Name": "HSN19_Cess",
-    
     "Category": " 22. HSN-wise Summaries (Tables 16-19)",
     "Field Description": "HSN 19 CESS amount"
   },
   {
     "Field Name": "Summary_Value",
-    
     "Category": " 23. Summary (Page 2 Total)",
     "Field Description": "Total summary value"
   },
   {
     "Field Name": "Summary_IGST",
-    
     "Category": " 23. Summary (Page 2 Total)",
     "Field Description": "Total summary IGST"
   },
   {
     "Field Name": "Summary_CGST",
-    
     "Category": " 23. Summary (Page 2 Total)",
     "Field Description": "Total summary CGST"
   },
   {
     "Field Name": "Summary_SGST",
-    
     "Category": " 23. Summary (Page 2 Total)",
     "Field Description": "Total summary SGST"
   },
   {
     "Field Name": "Summary_Cess",
-    
     "Category": " 23. Summary (Page 2 Total)",
     "Field Description": "Total summary CESS"
   },

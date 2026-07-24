@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload, Menu, X, ChevronLeft, ChevronRight} from 'lucide-react'
+import { Upload, Menu, X, ChevronLeft, ChevronRight, GitCompare} from 'lucide-react'
 export type SidebarView = 'upload' | 'reconciliation'
 interface NavItem {
   id: SidebarView
@@ -10,7 +10,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { id: 'upload', label: 'Upload & Extract', icon: Upload },
-  //{ id: 'reconciliation', label: 'Reconciliation', icon: GitCompare },
+  { id: 'reconciliation', label: 'Reconciliation', icon: GitCompare },
 ]
 interface Props {
   activeView: SidebarView

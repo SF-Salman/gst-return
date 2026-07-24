@@ -672,8 +672,8 @@ type ReconTab = 'gstr1-3b' | 'gstr2b-books' | 'gstr3b-books'
 
 const TABS: { id: ReconTab; label: string; ready: boolean }[] = [
   { id: 'gstr1-3b',     label: 'GSTR-1 vs GSTR-3B', ready: true  },
-  { id: 'gstr2b-books', label: 'GSTR-2B vs Books',   ready: true  },
-  { id: 'gstr3b-books', label: 'GSTR-3B vs Books',   ready: true },
+ //{ id: 'gstr2b-books', label: 'GSTR-2B vs Books',   ready: true  },
+ // { id: 'gstr3b-books', label: 'GSTR-3B vs Books',   ready: true },
 ]
 
 export default function ReconciliationPage(_props: ReconciliationPageProps = {}) {
